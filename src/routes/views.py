@@ -23,7 +23,7 @@ def root():
     <body style=\"background:#181818;color:#eee;font-family:sans-serif;\">
         <h1 style=\"text-align:center;\">Welcome to the MCP Server!</h1>
         <div id=\"chatbox\">
-            <div id=\"chatlog\">Type an endpoint ( <b>articles</b>, <b>add_article</b> ) and press Enter or Go:</div>
+            <div id=\"chatlog\">Skriv in en endpoint ( <b>articles</b>, <b>add_article</b> ) och tryck Enter eller Go:</div>
             <form id=\"chatForm\" autocomplete=\"off\">
                 <input id=\"endpointInput\" type=\"text\" placeholder=\"Ange endpoint..\" autofocus required />
                 <button id=\"goBtn\" type=\"submit\">Go</button>
