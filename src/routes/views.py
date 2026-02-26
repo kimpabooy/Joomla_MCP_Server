@@ -29,10 +29,6 @@ def root():
                 <button id=\"goBtn\" type=\"submit\">Go</button>
             </form>
         </div>
-        <ul style=\"text-align:center;\">
-            <li><a href=\"/articles\">Get all Articles</a></li>
-            <li><a href=\"/add_article\">Add new Article</a></li>
-        </ul>
         <script>
         document.getElementById('chatForm').onsubmit = async function(e) {
             e.preventDefault();
