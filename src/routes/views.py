@@ -22,40 +22,65 @@ def root():
     </head>
     <body style=\"background:#181818;color:#eee;font-family:sans-serif;\">
         <h1 style=\"text-align:center;\">Welcome to the MCP Server!</h1>
-        <div id=\"chatbox\">
-            <div id=\"chatlog\">Skriv in en endpoint ( <b>articles</b>, <b>add_article</b> ) och tryck Enter eller Go:</div>
-            <form id=\"chatForm\" autocomplete=\"off\">
-                <input id=\"endpointInput\" type=\"text\" placeholder=\"Ange endpoint..\" autofocus required />
-                <button id=\"goBtn\" type=\"submit\">Go</button>
-            </form>
-        </div>
-        <script>
-        document.getElementById('chatForm').onsubmit = async function(e) {
-            e.preventDefault();
-            let endpoint = document.getElementById('endpointInput').value.trim();
-            if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
-            try {
-                const resp = await fetch(endpoint, { method: 'HEAD' });
-                if (resp.ok) {
-                    window.location.href = endpoint;
-                } else if (resp.status === 405) {
-                    const resp2 = await fetch(endpoint, { method: 'GET' });
-                    if (resp2.ok) {
-                        window.location.href = endpoint;
-                    } else {
-                        document.getElementById('chatlog').innerHTML =
-                            'Endpoint <b>' + endpoint + '</b> finns inte (HTTP ' + resp2.status + '). Pröva igen:';
-                    }
-                } else {
-                    document.getElementById('chatlog').innerHTML =
-                        'Endpoint <b>' + endpoint + '</b> finns inte (HTTP ' + resp.status + '). Pröva igen:';
+            <style>
+            .chat-msg { margin: 8px 0; padding: 8px 12px; border-radius: 6px; max-width: 95%; word-break: break-word; }
+            .chat-msg.user { background: #333; color: #fff; text-align: right; margin-left: 30px; }
+            .chat-msg.bot { background: #222; color: #b3e5fc; text-align: left; margin-right: 30px; }
+            .chat-msg pre { background: none; color: inherit; margin: 0; padding: 0; font-size: 0.95em; }
+            </style>
+            <div id="chatbox">
+                <div id="chatlog">
+                    <div class="chat-msg bot">Skriv in en endpoint ( <b>articles</b>, <b>add_article</b> ) och tryck Enter eller Go:</div>
+                </div>
+                <form id="chatForm" autocomplete="off">
+                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" style="width: 100%; resize: vertical;" required></textarea>
+                    <button id="goBtn" type="submit" style="display:none;">Go</button>
+                </form>
+            </div>
+            <script>
+            const textarea = document.getElementById('endpointInput');
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.getElementById('chatForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
                 }
-            } catch (err) {
-                document.getElementById('chatlog').innerHTML =
-                    'Fel vid kontroll av endpoint. Pröva igen:';
-            }
-        };
-        </script>
+            });
+
+            document.getElementById('chatForm').onsubmit = async function(e) {
+                e.preventDefault();
+                let endpoint = textarea.value.trim();
+                if (!endpoint) return;
+                if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
+                let chatlog = document.getElementById('chatlog');
+                let userMsg = document.createElement('div');
+                userMsg.className = 'chat-msg user';
+                userMsg.textContent = textarea.value;
+                chatlog.appendChild(userMsg);
+                textarea.value = '';
+                textarea.focus();
+                try {
+                    const resp = await fetch(endpoint, { method: 'GET' });
+                    let botMsg = document.createElement('div');
+                    botMsg.className = 'chat-msg bot';
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        botMsg.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    } else {
+                        botMsg.innerHTML = 'Endpoint <b>' + endpoint + '</b> finns inte (HTTP ' + resp.status + '). Prova igen:';
+                    }
+                    chatlog.appendChild(botMsg);
+                    chatlog.scrollTop = chatlog.scrollHeight;
+                } catch (err) {
+                    let botMsg = document.createElement('div');
+                    botMsg.className = 'chat-msg bot';
+                    botMsg.textContent = 'Fel vid kontroll av endpoint. Prova igen:';
+                    chatlog.appendChild(botMsg);
+                    chatlog.scrollTop = chatlog.scrollHeight;
+                }
+                textarea.value = '';
+                textarea.focus();
+            };
+            </script>
     </body>
     </html>
     """
