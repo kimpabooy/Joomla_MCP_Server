@@ -8,6 +8,7 @@ import uvicorn
 from dotenv import load_dotenv
 load_dotenv()
 
+# Skapa FastAPI app och inkludera routrar
 app = FastAPI()
 app.include_router(mcp_router)
 app.include_router(views_router)
