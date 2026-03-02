@@ -1,14 +1,14 @@
 from fastapi import APIRouter
-from src.tools.articles import get_articles, add_article
+from src.tools.articles import get_articles
+from os import getenv
 
 router = APIRouter()
 
 
 @router.get("/articles")
 def articles():
-    return get_articles()
+    JOOMLA_API_TOKEN = getenv("JOOMLA_API_TOKEN")
+    if not JOOMLA_API_TOKEN:
+        return {"error": "JOOMLA_API_TOKEN saknas i miljövariabler!"}
+    return get_articles(str(JOOMLA_API_TOKEN))
 
-
-@router.post("/add_article")
-def add_article_route(article: dict):
-    return add_article(article)
