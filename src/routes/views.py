@@ -14,9 +14,9 @@ def root():
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
         <title>MCP Server</title>
         <style>
-            #chatbox { width: 400px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: #eee; }
-            #chatlog { min-height: 40px; margin-bottom: 10px; }
-            #endpointInput { width: 80%; padding: 8px; }
+            #chatbox { width: 400px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: #eee; margin 50px auto; }
+            #chatlog { min-height: 40px; margin: 10px; }
+            #endpointInput { width: 80%; padding: 8px; border: 1px solid #555; border-radius: 4px; background: #333; color: #eee; margin-right: 16px; }
             #goBtn { padding: 8px 16px; }
         </style>
     </head>
@@ -30,10 +30,22 @@ def root():
             </style>
             <div id="chatbox">
                 <div id="chatlog">
-                    <div class="chat-msg bot">Skriv in en endpoint ( <b>articles</b>, <b>add_article</b> ) och tryck Enter eller Go:</div>
+                    <div class="chat-msg bot">Skriv in en endpoint ( <b>articles</b>, <b>add_article</b> ) och tryck Enter</div>
                 </div>
                 <form id="chatForm" autocomplete="off">
-                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" style="width: 100%; resize: vertical;" required></textarea>
+                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="1" style="width: 95%; min-width: 200px; max-width: 95%; resize: none; overflow: hidden;" required></textarea>
+                                <script>
+                                    const textarea = document.getElementById('endpointInput');
+                                    textarea.addEventListener('input', function() {
+                                        this.style.height = 'auto';
+                                        this.style.height = (this.scrollHeight) + 'px';
+                                    });
+                                    // Trigger resize on page load if there's pre-filled content
+                                    window.addEventListener('DOMContentLoaded', function() {
+                                        textarea.style.height = 'auto';
+                                        textarea.style.height = (textarea.scrollHeight) + 'px';
+                                    });
+                                </script>
                     <button id="goBtn" type="submit" style="display:none;">Go</button>
                 </form>
             </div>
