@@ -20,36 +20,64 @@ def root():
             #goBtn { padding: 8px 16px; }
         </style>
     </head>
-    <body style=\"background:#181818;color:#eee;font-family:sans-serif;\">
+    <body style=\"background:#181818;color:#b3e5ff;font-family:sans-serif;\">
         <h1 style=\"text-align:center;\">Welcome to the MCP Server!</h1>
-            <style>
+        <style>
             .chat-msg { margin: 8px 0; padding: 8px 12px; border-radius: 6px; max-width: 95%; word-break: break-word; }
             .chat-msg.user { background: #333; color: #fff; text-align: right; margin-left: 30px; }
-            .chat-msg.bot { background: #222; color: #b3e5fc; text-align: left; margin-right: 30px; }
+            .chat-msg.bot { background: #222; color: #b3e5ff; text-align: left; margin-right: 30px; }
             .chat-msg pre { background: none; color: inherit; margin: 0; padding: 0; font-size: 0.95em; }
-            </style>
+            #main-flex { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; }
+            #chatbox { width: 400px; margin: 30px 30px 30px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: #eee; }
+            #endpoints-box { min-width: 220px; max-width: 260px; margin: 30px 0 30px 0; padding: 20px; border: 1px solid #444; border-radius: 8px; background: #23272b; color: #b3e5ff; }
+            #endpoints-box h3 { margin-top: 0; }
+            #endpoints-list { list-style: none; padding-left: 0; }
+            #endpoints-list li { margin-bottom: 8px; font-size: 1.08em; }
+        </style>
+        <div id="main-flex">
+            <div id="response-box" style="min-width:260px;max-width:340px;margin:30px 30px 30px 0;padding:20px;border:1px solid #444;border-radius:8px;background:#23272b;color:#b3e5ff;min-height:200px;">
+                <h3>Svar</h3>
+                <div id="endpoint-response" style="white-space:pre-wrap;word-break:break-all;"></div>
+            </div>
             <div id="chatbox">
                 <div id="chatlog">
-                    <div class="chat-msg bot">Skriv in en endpoint ( <b>articles</b>, <b>add_article</b> ) och tryck Enter</div>
+                    <div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>
                 </div>
                 <form id="chatForm" autocomplete="off">
-                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="1" style="width: 95%; min-width: 200px; max-width: 95%; resize: none; overflow: hidden;" required></textarea>
-                                <script>
-                                    const textarea = document.getElementById('endpointInput');
-                                    textarea.addEventListener('input', function() {
-                                        this.style.height = 'auto';
-                                        this.style.height = (this.scrollHeight) + 'px';
-                                    });
-                                    // Trigger resize on page load if there's pre-filled content
-                                    window.addEventListener('DOMContentLoaded', function() {
-                                        textarea.style.height = 'auto';
-                                        textarea.style.height = (textarea.scrollHeight) + 'px';
-                                    });
-                                </script>
+                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" style="width: 95%; resize: vertical;" required></textarea>
                     <button id="goBtn" type="submit" style="display:none;">Go</button>
                 </form>
             </div>
+            <div id="endpoints-box">
+                <h3>Endpoints</h3>
+                <ul id="endpoints-list">
+                    <li>Laddar...</li>
+                </ul>
+                    <p>/clear</p>
+            </div>
+        </div>
             <script>
+            // Dynamiskt hämta endpoints och rendera i listan
+            fetch('/endpoints')
+                .then(resp => resp.json())
+                .then(data => {
+                    const list = document.getElementById('endpoints-list');
+                    list.innerHTML = '';
+                    if (data.endpoints && data.endpoints.length > 0) {
+                        data.endpoints.forEach(ep => {
+                            const li = document.createElement('li');
+                            li.textContent = ep.path + (ep.methods ? ' [' + ep.methods.join(',') + ']' : '');
+                            list.appendChild(li);
+                        });
+                    } else {
+                        list.innerHTML = '<li>Inga endpoints hittades</li>';
+                    }
+                })
+                .catch(() => {
+                    const list = document.getElementById('endpoints-list');
+                    list.innerHTML = '<li>Kunde inte hämta endpoints</li>';
+                });
+
             const textarea = document.getElementById('endpointInput');
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -62,26 +90,37 @@ def root():
                 e.preventDefault();
                 let endpoint = textarea.value.trim();
                 if (!endpoint) return;
-                if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
                 let chatlog = document.getElementById('chatlog');
+                let responseBox = document.getElementById('endpoint-response');
+                // Om användaren skriver /clear eller clear, rensa chatten direkt
+                if (endpoint === '/clear' || endpoint === 'clear') {
+                    chatlog.innerHTML = '<div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>';
+                    responseBox.innerHTML = '';
+                    textarea.value = '';
+                    textarea.focus();
+                    return;
+                }
+                if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
                 let userMsg = document.createElement('div');
                 userMsg.className = 'chat-msg user';
                 userMsg.textContent = textarea.value;
                 chatlog.appendChild(userMsg);
-                textarea.value = '';
-                textarea.focus();
-                try {
+                    // Visa laddar-indikator
+                    responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
+                    textarea.value = '';
+                    textarea.focus();
+                    try {
                     const resp = await fetch(endpoint, { method: 'GET' });
-                    let botMsg = document.createElement('div');
-                    botMsg.className = 'chat-msg bot';
                     if (resp.ok) {
                         const data = await resp.json();
-                        botMsg.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                        responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
                     } else {
+                        let botMsg = document.createElement('div');
+                        botMsg.className = 'chat-msg bot';
                         botMsg.innerHTML = 'Endpoint <b>' + endpoint + '</b> finns inte (HTTP ' + resp.status + '). Prova igen:';
+                        chatlog.appendChild(botMsg);
+                        chatlog.scrollTop = chatlog.scrollHeight;
                     }
-                    chatlog.appendChild(botMsg);
-                    chatlog.scrollTop = chatlog.scrollHeight;
                 } catch (err) {
                     let botMsg = document.createElement('div');
                     botMsg.className = 'chat-msg bot';
@@ -89,8 +128,6 @@ def root():
                     chatlog.appendChild(botMsg);
                     chatlog.scrollTop = chatlog.scrollHeight;
                 }
-                textarea.value = '';
-                textarea.focus();
             };
             </script>
     </body>
@@ -138,3 +175,8 @@ def add_article_form():
     </html>
     """
     return HTMLResponse(content=html_content)
+
+
+@router.get("/clear")
+def clear_chat():
+    return root()
