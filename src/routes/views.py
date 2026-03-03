@@ -17,14 +17,13 @@ def root():
             #chatbox { width: 400px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #222; color: #eee; margin 50px auto; }
             #chatlog { min-height: 40px; margin: 10px; }
             #endpointInput { width: 80%; padding: 8px; border: 1px solid #555; border-radius: 4px; background: #333; color: #eee; margin-right: 16px; }
-            #goBtn { padding: 8px 16px; }
         </style>
     </head>
+    
     <body style=\"background:#181818;color:#b3e5ff;font-family:sans-serif;\">
-        <h1 style=\"text-align:center;\">Welcome to the MCP Server!</h1>
         <style>
             .chat-msg { margin: 8px 0; padding: 8px 12px; border-radius: 6px; max-width: 95%; word-break: break-word; }
-            .chat-msg.user { background: #333; color: #fff; text-align: right; margin-left: 30px; }
+            .chat-msg.user { background: #2660a5; color: #fff; text-align: right; margin-left: 30px; }
             .chat-msg.bot { background: #222; color: #b3e5ff; text-align: left; margin-right: 30px; }
             .chat-msg pre { background: none; color: inherit; margin: 0; padding: 0; font-size: 0.95em; }
             #main-flex { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; }
@@ -34,41 +33,49 @@ def root():
             #endpoints-list { list-style: none; padding-left: 0; }
             #endpoints-list li { margin-bottom: 8px; font-size: 1.08em; }
         </style>
+        
+        <h1 style=\"text-align:center;\">Welcome to the MCP Server!</h1>
+        
         <div id="main-flex">
             <div id="response-box" style="min-width:260px;max-width:340px;margin:30px 30px 30px 0;padding:20px;border:1px solid #444;border-radius:8px;background:#23272b;color:#b3e5ff;min-height:200px;">
                 <h3>Svar</h3>
                 <div id="endpoint-response" style="white-space:pre-wrap;word-break:break-all;"></div>
             </div>
+            
             <div id="chatbox">
                 <div id="chatlog">
                     <div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>
                 </div>
                 <form id="chatForm" autocomplete="off">
                     <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" style="width: 95%; resize: vertical;" required></textarea>
-                    <button id="goBtn" type="submit" style="display:none;">Go</button>
                 </form>
             </div>
+
             <div id="endpoints-box">
                 <h3>Endpoints</h3>
                 <ul id="endpoints-list">
                     <li>Laddar...</li>
                 </ul>
-                    <p>/clear</p>
+                    <p> Extra: /clear, /help</p>
             </div>
         </div>
+
             <script>
-            // Dynamiskt hämta endpoints och rendera i listan
+            
+            // --- Dynamiskt hämta endpoints och renderas i listan ---
             fetch('/endpoints')
                 .then(resp => resp.json())
                 .then(data => {
                     const list = document.getElementById('endpoints-list');
                     list.innerHTML = '';
-                    if (data.endpoints && data.endpoints.length > 0) {
+                    if (data.endpoints && data.endpoints.length > 0 ) {
                         data.endpoints.forEach(ep => {
+                        if (ep.path !== "/mcp-proxy" && ep.path !== "/endpoints" && ep.path !== "/help") {
                             const li = document.createElement('li');
-                            li.textContent = ep.path + (ep.methods ? ' [' + ep.methods.join(',') + ']' : '');
+                            li.textContent = ep.path;
                             list.appendChild(li);
-                        });
+                        }
+                    });
                     } else {
                         list.innerHTML = '<li>Inga endpoints hittades</li>';
                     }
@@ -78,6 +85,7 @@ def root():
                     list.innerHTML = '<li>Kunde inte hämta endpoints</li>';
                 });
 
+            // --- Hantera Enter-tangenten i textarean ---
             const textarea = document.getElementById('endpointInput');
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -86,13 +94,15 @@ def root():
                 }
             });
 
+            // --- Hantera formulärets submit-event ---
             document.getElementById('chatForm').onsubmit = async function(e) {
                 e.preventDefault();
                 let endpoint = textarea.value.trim();
                 if (!endpoint) return;
                 let chatlog = document.getElementById('chatlog');
                 let responseBox = document.getElementById('endpoint-response');
-                // Om användaren skriver /clear eller clear, rensa chatten direkt
+
+                // --- Om användaren skriver /clear eller clear, rensa chatten ---
                 if (endpoint === '/clear' || endpoint === 'clear') {
                     chatlog.innerHTML = '<div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>';
                     responseBox.innerHTML = '';
@@ -100,17 +110,25 @@ def root():
                     textarea.focus();
                     return;
                 }
+
+                // --- Lägg till användarens meddelande i chatten ---
                 if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
                 let userMsg = document.createElement('div');
                 userMsg.className = 'chat-msg user';
                 userMsg.textContent = textarea.value;
                 chatlog.appendChild(userMsg);
-                    // Visa laddar-indikator
-                    responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
-                    textarea.value = '';
-                    textarea.focus();
-                    try {
-                    const resp = await fetch(endpoint, { method: 'GET' });
+
+                // --- Automatiskt skicka via /mcp-proxy ---
+                const proxyEndpoint = `/mcp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
+
+                // --- Visar en laddnings indikator om endpointet tar tid att svara ---
+                responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
+                textarea.value = '';
+                textarea.focus();
+                try {
+
+                // --- Skicka en förfrågan till proxy-endpointen ---
+                const resp = await fetch(proxyEndpoint);
                     if (resp.ok) {
                         const data = await resp.json();
                         responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
