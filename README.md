@@ -30,5 +30,8 @@ Logiken för “articles tool” ligger i `src/tools/articles.py` och använder 
     │   ├── mcp.py
     │   └── views.py
     └── tools
-        └── articles.py
+    │   └── articles.py
+    └── service
+        └── joomla_service.py
 ```
+
