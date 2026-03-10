@@ -82,7 +82,7 @@ def delete_article(JOOMLA_API_TOKEN: str, article_id: int):
     pass
 
 
-def edit_article(JOOMLA_API_TOKEN: str, article_id: int, title: str = None, content: str = None):
+def edit_article(JOOMLA_API_TOKEN: str, article_id: int, title: str, content: str):
     pass
 
 
