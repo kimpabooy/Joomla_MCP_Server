@@ -63,7 +63,7 @@ def root():
             <script>
             
             // --- Dynamiskt hämta endpoints och renderas i listan ---
-            fetch('/endpoints')
+            fetch('/help')
                 .then(resp => resp.json())
                 .then(data => {
                     const list = document.getElementById('endpoints-list');

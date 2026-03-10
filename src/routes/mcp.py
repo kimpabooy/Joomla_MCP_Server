@@ -6,9 +6,16 @@ import requests
 
 router = APIRouter()
 
-base_url = getenv("SERVER_URL")
+
+# Gets server URL from environment variable
+def get_server_url():
+    SERVER_URL = getenv("SERVER_URL")
+    if not SERVER_URL:
+        raise ValueError("SERVER_URL saknas i miljövariabler!")
+    return SERVER_URL
 
 
+# Gets token from environment variable
 def get_token():
     JOOMLA_API_TOKEN = getenv("JOOMLA_API_TOKEN")
     if not JOOMLA_API_TOKEN:
@@ -16,21 +23,26 @@ def get_token():
     return JOOMLA_API_TOKEN
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Generisk proxy-endpoint som avgör HTTP-metod baserat på endpoint-sträng
-# //////////////////////////////////////////////////////////////////////////////////////
+# Generic proxy-endpoint that determines HTTP method based on endpoint string
 @router.api_route("/mcp-proxy", methods=["GET", "POST", "PATCH"])
 def mcp_proxy(endpoint: str = Query(..., description="API-endpoint att anropa, t.ex. /articles/1/unpublish")):
     from re import match
 
-    # Metodmappning baserat på endpoint-mönster (regex → HTTP-metod)
+    # RegEx exampeles:
+    # GET endpoints: (r"^/articles$", "GET")
+    # POST endpoints: (r"^/articles/\d+/post_article$", "POST")
+    # PATCH endpoints: (r"^/articles/\d+/unpublish$", "PATCH")
+    # DELETE endpoints: (r"^/articles/\d+/delete$", "DELETE")
+
+    # Method mapping based on endpoint patterns (regex → HTTP method)
     ENDPOINT_METHOD_MAP = [
+        (r"^/articles/\d+/post_article$", "POST"),
         (r"^/articles/\d+/unpublish$", "PATCH"),
         (r"^/articles/\d+/publish$",   "PATCH"),
         (r"^/articles/\d+/trash$",     "PATCH"),
         (r"^/articles/\d+$",           "GET"),
         (r"^/articles$",               "GET"),
-        # Lägg till fler mönster här vid behov
+        # Add more as needed...
     ]
 
     method = "GET"  # Standardmetod
@@ -39,7 +51,7 @@ def mcp_proxy(endpoint: str = Query(..., description="API-endpoint att anropa, t
             method = mapped_method
             break
 
-    url = f"{base_url}{endpoint}"
+    url = f"{get_server_url()}{endpoint}"
     resp = requests.request(method, url)
 
     print(f"[Proxy] Metod: {method}, URL: {url}")
@@ -52,72 +64,37 @@ def mcp_proxy(endpoint: str = Query(..., description="API-endpoint att anropa, t
         return {"error": "Kunde inte tolka svaret"}
 
 
-# @router.api_route("/mcp-proxy", methods=["GET", "POST", "PATCH"])
-# def mcp_proxy(endpoint: str = Query(..., description="API-endpoint att anropa, t.ex. /articles/1/unpublish")):
-#     # Enkel logik för metodval, kan byggas ut med regex eller dict
-#     endpoint_lower = endpoint.lower()
-#     if "patch" in endpoint_lower:
-#         method = "PATCH"
-#     elif "post" in endpoint_lower:
-#         method = "POST"
-#     else:
-#         method = "GET"
-
-#     url = f"{base_url}{endpoint}"
-#     resp = requests.request(method, url)
-
-#     print(f"[Proxy] Metod: {method}, URL: {url}")
-#     print(f"[Proxy] Statuskod: {resp.status_code}")
-#     print(f"[Proxy] Respons: {resp.text}")
-
-#     try:
-#         return resp.json()
-#     except Exception:
-#         return {"error": "Kunde inte tolka svaret"}
-
-
-# //////////////////////////////////////////////////////////////////////////////////////
-# Lägg till fler endpoints här, t.ex. för att kommunicera med Joomla API, hantera användare, etc.
-# //////////////////////////////////////////////////////////////////////////////////////
-@router.get("/endpoints")
+# Route to show available endpoints
+@router.get("/help")
 def endpoints():
     return get_all_endpoints(router)
 
 
-@router.get("/help")
-def help():
-    return get_all_endpoints(router)
-
-
-# //////////////////////////////////////////////////////////////////////////////////////
-# Endpoint för att hämta artiklar från Joomla API
-# //////////////////////////////////////////////////////////////////////////////////////
+# Route to get all articles
 @router.get("/articles")
 def articles():
     return get_articles(get_token())
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Endpoint för att hämta detaljerna för en specifik artikel baserat på dess ID
-# //////////////////////////////////////////////////////////////////////////////////////
+# Route to get a specific article based on its ID
 @router.get("/articles/{article_id}")
 def article(article_id: int):
     return get_article_id(get_token(), article_id)
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Endpoint för att avpublicera en artikel baserat på dess ID
-# //////////////////////////////////////////////////////////////////////////////////////
+# Route to unpublish an article based on its ID
 @router.patch("/articles/{article_id}/unpublish")
 def unpublish(article_id: int):
     return unpublish_article(get_token(), article_id)
 
 
+# Route to publish an article based on its ID
 @router.patch("/articles/{article_id}/publish")
 def publish(article_id: int):
     return publish_article(get_token(), article_id)
 
 
+# Route to trash an article based on its ID
 @router.patch("/articles/{article_id}/trash")
 def trash(article_id: int):
     return trash_article(get_token(), article_id)
