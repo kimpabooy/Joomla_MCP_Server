@@ -55,7 +55,6 @@ Chat-UI:t skickar alla kommandon som `GET` via `fetch()`. Proxyn analyserar endp
 ├── .env                     # JOOMLA_URL, JOOMLA_API_TOKEN
 ├── templates/
 │   ├── index.html           # Chatt-UI (Jinja2-template)
-│   └── add_article.html     # Formulär för att skapa artikel
 ├── static/
 │   ├── style.css            # All CSS
 │   └── chat.js              # Chat-logik (fetch → proxy)
