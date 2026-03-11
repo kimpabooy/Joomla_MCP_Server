@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from src.routes.mcp import router as mcp_router
 from src.routes.views import router as views_router
 import uvicorn
@@ -10,6 +10,7 @@ load_dotenv()
 
 # Skapa FastAPI app och inkludera routrar
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(mcp_router)
 app.include_router(views_router)
 
