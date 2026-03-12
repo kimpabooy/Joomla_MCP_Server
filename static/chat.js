@@ -1,24 +1,22 @@
-// --- Dynamiskt hämta endpoints och rendera i listan ---
+// --- Dynamiskt hämta MCP tools och rendera i listan ---
 fetch('/help')
     .then(resp => resp.json())
     .then(data => {
         const list = document.getElementById('endpoints-list');
         list.innerHTML = '';
-        if (data.endpoints && data.endpoints.length > 0) {
-            data.endpoints.forEach(ep => {
-                if (ep.path !== "/mcp-proxy" && ep.path !== "/endpoints" && ep.path !== "/help") {
-                    const li = document.createElement('li');
-                    li.textContent = ep.path;
-                    list.appendChild(li);
-                }
+        if (data.tools && data.tools.length > 0) {
+            data.tools.forEach(tool => {
+                const li = document.createElement('li');
+                li.textContent = `${tool.endpoint}`;
+                list.appendChild(li);
             });
         } else {
-            list.innerHTML = '<li>Inga endpoints hittades</li>';
+            list.innerHTML = '<li>Inga tools hittades</li>';
         }
     })
     .catch(() => {
         const list = document.getElementById('endpoints-list');
-        list.innerHTML = '<li>Kunde inte hämta endpoints</li>';
+        list.innerHTML = '<li>Kunde inte hämta tools</li>';
     });
 
 // --- Hantera Enter-tangenten i textarean ---
