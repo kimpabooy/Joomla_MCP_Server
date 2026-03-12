@@ -7,10 +7,16 @@ from src.tools.mcp_server import (
     publish,
     unpublish,
     trash,
+    create_article,
+    remove_article,
 )
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def handle_help(_):
+    return help_endpoints()
 
 
 def handle_list_articles(_):
@@ -37,8 +43,16 @@ def handle_trash(regex_match):
     return trash(article_id)
 
 
-def handle_help(_):
-    return help_endpoints()
+def handle_create_article(regex_match):
+    # Förväntar sig att regex_match innehåller title och content i grupperna
+    title = regex_match.group(1)
+    content = regex_match.group(2)
+    return create_article(title, content)
+
+
+def handle_remove_article(regex_match):
+    article_id = int(regex_match.group(1))
+    return remove_article(article_id)
 
 
 """
@@ -91,6 +105,21 @@ ENDPOINT_TOOL_MAP = [
         "description": "Visa hjälpinformation",
         "handler": handle_help
     },
+    {
+        "name": "create_article",
+        "endpoint": "/articles/create",
+        "pattern": r"^/articles/create\s+title:(.+)\s+content:(.+)$",
+        "description": "Skapa en ny artikel med titel och innehåll",
+        "handler": handle_create_article
+    },
+    {
+        "name": "remove_article",
+        "endpoint": "/articles/{id}/remove",
+        "pattern": r"^/articles/(\d+)/remove$",
+        "description": "Ta bort en artikel permanent",
+        "handler": handle_remove_article
+    }
+
 ]
 
 
