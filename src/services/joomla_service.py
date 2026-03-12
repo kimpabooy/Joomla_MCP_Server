@@ -8,10 +8,8 @@ CONTENT_TYPE = "application/json"
 ACCEPT = "*/*"
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-#  Hjälpfunktion för att skapa headers med autentisering
-# //////////////////////////////////////////////////////////////////////////////////////
 def get_headers(token: str) -> Dict[str, str]:
+    """Helper function to construct the headers for Joomla API requests."""
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": CONTENT_TYPE,
@@ -19,10 +17,8 @@ def get_headers(token: str) -> Dict[str, str]:
     }
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Funktion för att hämta alla artiklar från Joomla API
-# //////////////////////////////////////////////////////////////////////////////////////
 def get_joomla_articles(token: str) -> List[Dict[str, Any]]:
+    """Hämtar alla artiklar från Joomla och returnerar en lista med formaterad artikeldata."""
     url = f"{JOOMLA_URL}/content/articles"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
@@ -31,10 +27,8 @@ def get_joomla_articles(token: str) -> List[Dict[str, Any]]:
     return response.json().get("data", [])
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Funktion för att hämta detaljerna för en specifik artikel baserat på dess ID
-# //////////////////////////////////////////////////////////////////////////////////////
 def get_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
+    """Hämtar detaljer för en specifik artikel baserat på dess ID."""
     url = f"{JOOMLA_URL}/content/articles/{article_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
@@ -43,10 +37,8 @@ def get_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
     return response.json().get("data", {})
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Funktion för att avpublisera en artikel baserat på dess ID
-# //////////////////////////////////////////////////////////////////////////////////////
 def unpublish_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
+    """Unpublishes an article based on its ID."""
     url = f"{JOOMLA_URL}/content/articles/{article_id}"
     headers = get_headers(token)
     data = {
@@ -58,10 +50,8 @@ def unpublish_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
     return response.json().get("data", {})
 
 
-# //////////////////////////////////////////////////////////////////////////////////////
-# Funktion för att publicera en artikel baserat på dess ID
-# //////////////////////////////////////////////////////////////////////////////////////
 def publish_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
+    """Publishes an article based on its ID."""
     url = f"{JOOMLA_URL}/content/articles/{article_id}"
     headers = get_headers(token)
     data = {
@@ -74,6 +64,7 @@ def publish_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
 
 
 def trash_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
+    """Moves an article to the trash based on its ID."""
     url = f"{JOOMLA_URL}/content/articles/{article_id}"
     headers = get_headers(token)
     data = {
