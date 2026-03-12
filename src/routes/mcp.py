@@ -1,134 +1,121 @@
-from fastapi import APIRouter, Request
-from pydantic import BaseModel
-from src.tools.articles import get_article_id, get_articles, get_all_endpoints, publish_article, unpublish_article, trash_article
-from os import getenv
-import requests
-
-
-# Request models for body-based endpoints (POST/PATCH)
-class PostArticleRequest(BaseModel):
-    title: str
-    content: str
-
-
-class PatchArticleRequest(BaseModel):
-    id: int
-    title: str
-    content: str
-
-
-# Gets token from environment variable and raises an error if it's not set, ensuring secure access to Joomla API.
-# This function is used in all routes that require authentication to interact with the Joomla API.
-def get_token():
-    JOOMLA_API_TOKEN = getenv("JOOMLA_API_TOKEN")
-    if not JOOMLA_API_TOKEN:
-        raise ValueError("JOOMLA_API_TOKEN saknas i miljövariabler!")
-    return JOOMLA_API_TOKEN
-
+import logging
+from fastapi import APIRouter
+from re import match
+from src.tools.mcp_server import (
+    list_articles,
+    get_article,
+    publish,
+    unpublish,
+    trash,
+)
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
-# The chat UI (views.py) always sends GET requests via fetch().
-# Generic proxy-endpoint that determines HTTP method based on the requested endpoint pattern and forwards the request to our own local routes.
-@router.api_route("/mcp-proxy", methods=["GET", "POST", "PATCH", "DELETE"])
-def mcp_proxy(request: Request, endpoint: str):
-    from re import match
+def handle_list_articles(_):
+    return list_articles()
 
-    # Explanation of RegEx:
-    # r = raw string,
-    # ^ = start of string,
-    # $ = end of string,
-    # \d+ = one or more digits
 
-    # RegEx exampeles:
-    # GET endpoints: (r"^/articles$", "GET")
-    # POST endpoints: (r"^/articles/\d+/post_article$", "POST")
-    # PATCH endpoints: (r"^/articles/\d+/unpublish$", "PATCH")
-    # DELETE endpoints: (r"^/articles/\d+/delete$", "DELETE")
+def handle_get_article(regex_match):
+    article_id = int(regex_match.group(1))
+    return get_article(article_id)
 
-    # Method mapping based on endpoint patterns (regex → HTTP method)
-    # Tuple
-    ENDPOINT_METHOD_MAP = [
-        (r"^/articles$",               "GET"),
-        (r"^/articles/\d+$",           "GET"),
-        (r"^/articles/\d+/trash$",     "PATCH"),
-        (r"^/articles/\d+/publish$",   "PATCH"),
-        (r"^/articles/\d+/unpublish$", "PATCH"),
-        (r"^/articles/\d+/post_article$", "POST"),
-        # Add more as needed...
-    ]
 
-    # Determine the HTTP method based on the endpoint pattern
-    # if no pattern matches, default to GET
-    method = "GET"
-    for pattern, mapped_method in ENDPOINT_METHOD_MAP:
-        if match(pattern, endpoint):
-            method = mapped_method
-            break
+def handle_publish(regex_match):
+    article_id = int(regex_match.group(1))
+    return publish(article_id)
 
-    # Build URL to our own local server and forward the request
-    base_url = str(request.base_url).rstrip("/")
-    url = f"{base_url}{endpoint}"
-    response = requests.request(method, url)
 
-    # Debugging output to verify the proxy method is working correctly
-    print(f"[Proxy] Metod: {method}, URL: {url}")
-    print(f"[Proxy] Statuskod: {response.status_code}")
-    print(f"[Proxy] Respons: {response.text}")
+def handle_unpublish(regex_match):
+    article_id = int(regex_match.group(1))
+    return unpublish(article_id)
 
-    try:
-        return response.json()
-    except Exception:
-        return {"error": "Kunde inte tolka svaret"}
+
+def handle_trash(regex_match):
+    article_id = int(regex_match.group(1))
+    return trash(article_id)
+
+
+def handle_help(_):
+    return help_endpoints()
 
 
 """
-GET-endpoints
+Mappar endpoint-mönster (från chat-UI:t) till MCP tool-funktioner.
+"name" är ett identifierande namn för verktyget.
+"endpoint" är den beskrivande strängen som visas i hjälpkommandot.
+"pattern" är en regex-sträng som används för att matcha inkommande endpoint-förfrågningar.
+"handler" är en funktion som tar regex-match-objektet och anropar rätt MCP tool med nödvändiga argument.
 """
+ENDPOINT_TOOL_MAP = [
+    {
+        "name": "list_articles",
+        "endpoint": "/articles",
+        "pattern": r"^/articles$",
+        "description": "Lista alla artiklar",
+        "handler": handle_list_articles
+    },
+    {
+        "name": "get_article",
+        "endpoint": "/articles/{id}",
+        "pattern": r"^/articles/(\d+)$",
+        "description": "Visa en specifik artikel",
+        "handler": handle_get_article
+    },
+    {
+        "name": "publish",
+        "endpoint": "/articles/{id}/publish",
+        "pattern": r"^/articles/(\d+)/publish$",
+        "description": "Publicera en artikel",
+        "handler": handle_publish
+    },
+    {
+        "name": "unpublish",
+        "endpoint": "/articles/{id}/unpublish",
+        "pattern": r"^/articles/(\d+)/unpublish$",
+        "description": "Avpublicera en artikel",
+        "handler": handle_unpublish
+    },
+    {
+        "name": "trash",
+        "endpoint": "/articles/{id}/trash",
+        "pattern": r"^/articles/(\d+)/trash$",
+        "description": "Slänger (trashar) en artikel",
+        "handler": handle_trash
+    },
+    {
+        "name": "help",
+        "endpoint": "/help",
+        "pattern": r"^/help$",
+        "description": "Visa hjälpinformation",
+        "handler": handle_help
+    },
+]
 
 
-# Route to show available endpoints
+@router.get("/mcp-proxy")
+def mcp_proxy(endpoint: str):
+    """Recieve endpoint string from chat UI and route to the correct MCP tool function."""
+    logger.info(f"Requested endpoint: {endpoint}")
+
+    for tool in ENDPOINT_TOOL_MAP:
+        regex_match = match(tool["pattern"], endpoint)
+        if regex_match:
+            logger.info(f"Matching tool: {tool['name']}")
+            return tool["handler"](regex_match)
+
+    logger.warning(f"Ingen matchning för endpoint: {endpoint}")
+    return {"error": f"Okänd endpoint: {endpoint}"}
+
+
 @router.get("/help")
-def endpoints():
-    return get_all_endpoints(router)
-
-
-# Route to get all articles
-@router.get("/articles")
-def articles():
-    return get_articles(get_token())
-
-
-# Route to get a specific article based on its ID
-@router.get("/articles/{article_id}")
-def article(article_id: int):
-    return get_article_id(get_token(), article_id)
-
-
-"""
-PATCH-endpoints
-"""
-
-
-# Route to unpublish an article based on its ID
-@router.patch("/articles/{article_id}/unpublish")
-def unpublish(article_id: int):
-    return unpublish_article(get_token(), article_id)
-
-
-# Route to publish an article based on its ID
-@router.patch("/articles/{article_id}/publish")
-def publish(article_id: int):
-    return publish_article(get_token(), article_id)
-
-
-# Route to trash an article based on its ID
-@router.patch("/articles/{article_id}/trash")
-def trash(article_id: int):
-    return trash_article(get_token(), article_id)
-
-
-"""
-DELETE-endpoints
-"""
+def help_endpoints():
+    """Returns available endpoints for the chat UI, dynamically from ENDPOINT_TOOL_MAP."""
+    return {
+        "tools": [
+            {"name": t["name"], "endpoint": t["endpoint"],
+                "description": t["description"]}
+            for t in ENDPOINT_TOOL_MAP
+        ]
+    }
