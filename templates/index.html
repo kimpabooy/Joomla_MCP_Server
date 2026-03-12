@@ -5,35 +5,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCP Server</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v={{ cache_bust }}">
 </head>
 
 <body>
-    <h1>Welcome to the MCP Server!</h1>
+    <main>
+        <h1>Welcome to the MCP Server!</h1>
 
-    <div id="main-flex">
-        <div id="response-box">
-            <h3>Svar</h3>
-            <div id="endpoint-response"></div>
-        </div>
+        <div id="main-flex">
+            <section id="response-box">
+                <h2>Svar</h2>
+                <div id="endpoint-response"></div>
+            </section>
 
-        <div id="chatbox">
-            <div id="chatlog">
-                <div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>
-            </div>
-            <form id="chatForm" autocomplete="off">
-                <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" required></textarea>
-            </form>
-        </div>
+            <section id="chatbox">
+                <div id="chatlog">
+                    <div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>
+                </div>
+                <form id="chatForm" autocomplete="off">
+                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" required></textarea>
+                </form>
+            </section>
 
-        <div id="endpoints-box">
-            <h3>Endpoints</h3>
-            <ul id="endpoints-list">
-                <li>Laddar...</li>
-            </ul>
-            <p>Extra: /clear, /help</p>
+            <section id="endpoints-box">
+                <h2>Endpoints</h2>
+                <ul id="endpoints-list">
+                    <li>Laddar...</li>
+                </ul>
+                <p>Extra: /clear, /help</p>
+            </section>
         </div>
-    </div>
+    </main>
+
+    <!-- Modal för att skapa artikel -->
+    <dialog id="create-modal" class="modal-dialog">
+        <h3>Skapa ny artikel</h3>
+        <label for="modal-title">Titel</label>
+        <input type="text" id="modal-title" placeholder="Artikelns titel..." />
+        <label for="modal-content">Artikeltext</label>
+        <textarea id="modal-content" rows="5" placeholder="Skriv artikelns innehåll..."></textarea>
+        <div class="modal-buttons">
+            <button id="modal-cancel" type="button">Avbryt</button>
+            <button id="modal-submit" type="button">Skapa</button>
+        </div>
+    </dialog>
+
+    <!-- Modal för att redigera artikel -->
+    <dialog id="edit-modal" class="modal-dialog">
+        <h3>Redigera artikel</h3>
+        <label for="edit-modal-id">Artikel-ID</label>
+        <input type="number" id="edit-modal-id" placeholder="Artikelns ID..." min="1" />
+        <label for="edit-modal-title">Ny titel</label>
+        <input type="text" id="edit-modal-title" placeholder="Ny titel..." />
+        <label for="edit-modal-content">Nytt innehåll</label>
+        <textarea id="edit-modal-content" rows="5" placeholder="Skriv artikelns nya innehåll..."></textarea>
+        <div class="modal-buttons">
+            <button id="edit-modal-cancel" type="button">Avbryt</button>
+            <button id="edit-modal-submit" type="button">Spara</button>
+        </div>
+    </dialog>
+
+    <!-- Modal för att bekräfta borttagning -->
+    <dialog id="confirm-remove-modal" class="modal-dialog">
+        <h3>⚠️ Ta bort artikel</h3>
+        <p id="confirm-remove-text">Vill du verkligen ta bort denna artikel permanent?</p>
+        <div class="modal-buttons">
+            <button id="confirm-remove-cancel" type="button">Avbryt</button>
+            <button id="confirm-remove-yes" type="button" class="btn-danger">Ta bort</button>
+        </div>
+    </dialog>
 
     <script src="/static/chat.js"></script>
 </body>
