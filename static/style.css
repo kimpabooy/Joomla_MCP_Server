@@ -3,6 +3,8 @@ body {
     background: #181818;
     color: #b3e5ff;
     font-family: sans-serif;
+    margin: 0;
+    padding: 0 16px;
 }
 
 h1 {
@@ -11,17 +13,16 @@ h1 {
 
 /* Layout */
 #main-flex {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 /* Response box */
 #response-box {
-    min-width: 260px;
-    max-width: 340px;
-    margin: 30px 30px 30px 0;
+    margin: 30px 0;
     padding: 20px;
     border: 1px solid #444;
     border-radius: 8px;
@@ -37,8 +38,7 @@ h1 {
 
 /* Chatbox */
 #chatbox {
-    width: 400px;
-    margin: 30px 30px 30px 0;
+    margin: 30px 0;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -94,9 +94,7 @@ h1 {
 
 /* Endpoints box */
 #endpoints-box {
-    min-width: 220px;
-    max-width: 260px;
-    margin: 30px 0 30px 0;
+    margin: 30px 0;
     padding: 20px;
     border: 1px solid #444;
     border-radius: 8px;
@@ -116,4 +114,26 @@ h1 {
 #endpoints-list li {
     margin-bottom: 8px;
     font-size: 1.08em;
+}
+
+/* Tablet: 2 kolumner, endpoints under */
+@media (max-width: 1024px) {
+    #main-flex {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #endpoints-box {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Mobil: 1 kolumn, allt staplas */
+@media (max-width: 640px) {
+    #main-flex {
+        grid-template-columns: 1fr;
+    }
+
+    #endpoints-box {
+        grid-column: auto;
+    }
 }
