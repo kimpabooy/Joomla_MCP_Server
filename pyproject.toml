@@ -1,5 +1,5 @@
 [project]
-name = "mcp-server-py"
+name = "joomla-mcp-server"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -8,6 +8,7 @@ dependencies = [
     "fastapi>=0.133.1",
     "fastmcp>=3.1.0",
     "jinja2>=3.1.6",
+    "openai>=1.0.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
     "requests>=2.32.5",
