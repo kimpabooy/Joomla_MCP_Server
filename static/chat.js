@@ -1,24 +1,57 @@
 const textarea = document.getElementById('endpointInput');
 const chatlog = document.getElementById('chatlog');
 const responseBox = document.getElementById('endpoint-response');
+const WELCOME_MESSAGE = 'Hej! Jag kan hjälpa dig att hantera Joomla-artiklar. Vad vill du göra?';
+
+function scrollChatToBottom() {
+    chatlog.scrollTop = chatlog.scrollHeight;
+}
+
+function messageSentTime() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 
 function addUserMessage(text) {
     const userMsg = document.createElement('div');
     userMsg.className = 'chat-msg user';
-    userMsg.textContent = text;
+    const textSpan = document.createElement('span');
+    textSpan.className = 'msg-text';
+    textSpan.textContent = text;
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'timestamp';
+    timeSpan.textContent = messageSentTime();
+    userMsg.appendChild(textSpan);
+    userMsg.appendChild(timeSpan);
     chatlog.appendChild(userMsg);
+    scrollChatToBottom();
 }
 
-function addBotMessage(text) {
+function addBotMessage(text, options = {}) {
     const botMsg = document.createElement('div');
     botMsg.className = 'chat-msg bot';
-    botMsg.textContent = text;
+    if (options.pending) {
+        botMsg.classList.add('pending');
+    }
+    const textSpan = document.createElement('span');
+    textSpan.className = 'msg-text';
+    textSpan.textContent = text;
+    botMsg.appendChild(textSpan);
+    if (!options.pending) {
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'timestamp';
+        timeSpan.textContent = messageSentTime();
+        botMsg.appendChild(timeSpan);
+    }
     chatlog.appendChild(botMsg);
+    scrollChatToBottom();
+    return botMsg;
 }
 
 async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
     addUserMessage(shownMessage);
-    responseBox.innerHTML = '<span style="color:#b3e5ff;">Tänker...</span>';
+    responseBox.innerHTML = '<span class="status-thinking">AI bearbetar begäran...</span>';
+    const pendingBotMsg = addBotMessage('AI tänker...', { pending: true });
 
     try {
         const resp = await fetch('/chat', {
@@ -30,6 +63,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
         const data = await resp.json();
 
         if (data.requires_confirmation) {
+            pendingBotMsg.remove();
             addBotMessage(data.response || 'Åtgärden kräver bekräftelse.');
             responseBox.innerHTML = '';
 
@@ -50,17 +84,19 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
         }
 
         if (data.response) {
+            pendingBotMsg.remove();
             addBotMessage(data.response);
             responseBox.innerHTML = '';
         } else {
+            pendingBotMsg.remove();
             responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            addBotMessage('Fick ett svar utan text. Se systemstatus till vänster för detaljer.');
         }
     } catch (err) {
+        pendingBotMsg.remove();
         addBotMessage('Fel vid kommunikation med AI. Prova igen.');
         responseBox.innerHTML = '';
     }
-
-    chatlog.scrollTop = chatlog.scrollHeight;
 }
 
 textarea.addEventListener('keydown', function (e) {
@@ -76,10 +112,11 @@ document.getElementById('chatForm').onsubmit = async function (e) {
     if (!prompt) return;
 
     if (prompt === '/clear' || prompt === 'clear') {
-        chatlog.innerHTML = '<div class="chat-msg bot">Skriv vad du vill göra i Joomla och tryck <b>Enter</b></div>';
+        chatlog.innerHTML = `<div class="chat-msg bot">${WELCOME_MESSAGE}</div>`;
         responseBox.innerHTML = '';
         textarea.value = '';
         textarea.focus();
+        scrollChatToBottom();
         return;
     }
 
