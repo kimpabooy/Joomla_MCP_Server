@@ -1,76 +1,98 @@
 # MCP Server (Python)
 
-En lättviktig **FastAPI**-server som fungerar som ett MCP-lager (Model Context Protocol) mot **Joomla 4 Core API**. Servern exponerar ett "tools"-API för **articles** samt ett webb-UI med chatt för att testa endpoints direkt i webbläsaren.
+FastAPI-projekt for Joomla 4 Core API med tva integrationsvägar:
 
-> Repo: `kimpabooy/MCP_Server_Py`  
-> Paketnamn: `mcp-server-py` (från `pyproject.toml`)  
-> Python: `>= 3.13`
+1. Webb-UI med naturligt språk via LLM (`POST /chat`)
+2. MCP-server for externa klienter (`/mcp`)
+
+Projektet anropar Joomla API via verktyg i `mcp_tools.py`, och LLM valjer verktyg via OpenAI function calling.
+
+Repo: `kimpabooy/Joomla_MCP_Server`  
+Paketnamn: `joomla-mcp-server`  
+Python: `>= 3.13`
 
 ---
 
 ## Arkitektur
 
-Projektet följer en trelagersarkitektur:
+```text
+Browser UI (templates/index.html + static/chat.js)
+     -> POST /chat
+          -> src/routes/chat_router.py
+               -> src/services/llm_service.py (OpenAI + tools schema)
+               -> dispatch till verktyg i src/tools/mcp_tools.py
+                    -> src/services/joomla_service.py
+                         -> Joomla 4 Core API
 
+Extern MCP-klient
+     -> /mcp (FastMCP mount i main.py)
+          -> src/tools/mcp_tools.py
+               -> src/services/joomla_service.py
+                    -> Joomla 4 Core API
 ```
-Webbläsare (Chat UI)
-  → Proxy (/mcp-proxy) — bestämmer HTTP-metod via regex
-    → Routes (mcp.py) — FastAPI-endpoints med validering
-      → Tools (articles.py) — formatering + MCPRequest-modell
-        → Services (joomla_service.py) — HTTP-anrop mot Joomla API
-```
-
-Chat-UI:t skickar alla kommandon som `GET` via `fetch()`. Proxyn analyserar endpoint-mönstret med regex och vidarebefordrar requesten med rätt HTTP-metod (GET/POST/PATCH/DELETE) till de lokala routerna.
 
 ---
 
 ## Endpoints
 
-### API-routes (`src/routes/mcp.py`)
+### App-routes
 
-| Metod | Endpoint                   | Beskrivning                         |
-| ----- | -------------------------- | ----------------------------------- |
-| GET   | `/help`                    | Listar alla tillgängliga endpoints  |
-| GET   | `/articles`                | Hämtar alla artiklar                |
-| GET   | `/articles/{id}`           | Hämtar en specifik artikel          |
-| PATCH | `/articles/{id}/publish`   | Publicerar en artikel               |
-| PATCH | `/articles/{id}/unpublish` | Avpublicerar en artikel             |
-| PATCH | `/articles/{id}/trash`     | Slänger en artikel i papperskorgen  |
-| \*    | `/mcp-proxy?endpoint=...`  | Proxy — översätter GET → rätt metod |
+| Method | Endpoint | Purpose                                                            |
+| ------ | -------- | ------------------------------------------------------------------ |
+| `GET`  | `/`      | Renderar chat-UI (`templates/index.html`).                         |
+| `POST` | `/chat`  | Tar emot prompt, låter LLM välja verktyg och kor Joomla-operation. |
 
-### View-routes (`src/routes/views.py`)
+### MCP-route
 
-| Metod | Endpoint | Beskrivning                       |
-| ----- | -------- | --------------------------------- |
-| GET   | `/`      | Huvudsida med chatt-UI            |
-| GET   | `/clear` | Rensar chatten (returnerar index) |
+| Method     | Endpoint | Purpose                                                                   |
+| ---------- | -------- | ------------------------------------------------------------------------- |
+| ASGI mount | `/mcp`   | Exponerar FastMCP-verktyg for externa MCP-klienter (SSE/streamable HTTP). |
+
+Notering: `/clear` hanteras på klientsidan i `static/chat.js` och rensar bara chatloggen i browsern.
+
+---
+
+## Tools (LLM + MCP)
+
+Definierade i `src/tools/mcp_tools.py` och speglade som function-calling schema i `src/services/llm_service.py`.
+
+| Tool             | Purpose                                          |
+| ---------------- | ------------------------------------------------ |
+| `list_articles`  | Hamta alla artiklar.                             |
+| `get_article`    | Hamta artikel med ID.                            |
+| `publish`        | Publicera artikel med ID.                        |
+| `unpublish`      | Avpublicera artikel med ID.                      |
+| `trash`          | Flytta artikel till papperskorg.                 |
+| `create_article` | Skapa artikel med titel och innehall.            |
+| `edit_article`   | Redigera artikel med ny titel och nytt innehall. |
+| `remove_article` | Ta bort artikel permanent.                       |
 
 ---
 
 ## Projektstruktur
 
-```
-├── main.py                  # FastAPI app + uvicorn
+```text
+├── main.py
 ├── pyproject.toml
-├── .env                     # JOOMLA_URL, JOOMLA_API_TOKEN
+├── .env
 ├── templates/
-│   ├── index.html           # Chatt-UI (Jinja2-template)
+│   ├── index.html
 ├── static/
-│   ├── style.css            # All CSS
-│   └── chat.js              # Chat-logik (fetch → proxy)
+│   ├── chat.js
+│   └── style.css
 └── src/
     ├── routes/
-    │   ├── mcp.py           # API-routes + proxy + Pydantic-modeller
-    │   └── views.py         # Jinja2 template-rendering
-    ├── tools/
-    │   └── articles.py      # Formatering + MCPRequest-wrapper
+    │   ├── chat_router.py
     └── services/
-        └── joomla_service.py  # HTTP-anrop mot Joomla REST API
+    │   ├── llm_service.py
+    │   └── joomla_service.py
+    └── tools/
+        └── mcp_tools.py
 ```
 
 ---
 
-## Kom igång
+## Kom igang
 
 ### 1. Installera dependencies
 
@@ -78,13 +100,14 @@ Chat-UI:t skickar alla kommandon som `GET` via `fetch()`. Proxyn analyserar endp
 uv sync
 ```
 
-### 2. Konfigurera miljövariabler
+### 2. Konfigurera miljo
 
-Skapa en `.env`-fil i projektets rot:
+Skapa `.env` i projektroten:
 
 ```env
-JOOMLA_URL=http://localhost:8080/api/index.php/v1
-JOOMLA_API_TOKEN=din_token_här
+JOOMLA_URL=din_joomla_url_har
+JOOMLA_API_TOKEN=din_token_har
+OPENAI_API_KEY=din_openai_nyckel_har
 ```
 
 ### 3. Starta servern
@@ -93,17 +116,19 @@ JOOMLA_API_TOKEN=din_token_här
 uv run main.py
 ```
 
-Servern körs på `http://127.0.0.1:8000`.
+Server: `http://127.0.0.1:8000`
 
 ---
 
 ## Dependencies
 
-| Paket         | Syfte                          |
-| ------------- | ------------------------------ |
-| fastapi       | Web-framework                  |
-| uvicorn       | ASGI-server                    |
-| jinja2        | HTML-templates                 |
-| pydantic      | Validering av request/response |
-| requests      | HTTP-anrop mot Joomla API      |
-| python-dotenv | Läser `.env`-filer             |
+| Package         | Purpose                      |
+| --------------- | ---------------------------- |
+| `fastapi`       | Web framework                |
+| `fastmcp`       | MCP server                   |
+| `uvicorn`       | ASGI server                  |
+| `jinja2`        | HTML templates               |
+| `openai`        | LLM function calling         |
+| `pydantic`      | Validation                   |
+| `requests`      | Joomla HTTP calls            |
+| `python-dotenv` | Environment variable loading |

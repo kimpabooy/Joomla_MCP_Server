@@ -3,7 +3,6 @@ import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from src.routes.chat_router import router as chat_router
-from src.routes.views import router as views_router
 from src.tools.mcp_tools import mcp
 import uvicorn
 
@@ -20,7 +19,6 @@ mcp_app = mcp.http_app()
 app = FastAPI(lifespan=mcp_app.lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(chat_router)
-app.include_router(views_router)
 
 # Montera FastMCP-servern på /mcp (hanterar SSE och streamable HTTP)
 app.mount("/mcp", mcp_app)

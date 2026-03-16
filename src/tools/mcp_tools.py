@@ -96,7 +96,7 @@ def remove_article(article_id: int) -> dict:
     """Permanently deletes an article based on its ID."""
     try:
         result = remove_joomla_article(get_token(), article_id)
-        return format_article_data(result)
+        return result
     except Exception as e:
         return {"error": str(e)}
 

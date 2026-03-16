@@ -1,6 +1,10 @@
 import logging
-from fastapi import APIRouter
-from re import match
+import time
+from datetime import datetime
+from uuid import uuid4
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
+from src.services.llm_service import ask_llm
 from src.tools.mcp_tools import (
     list_articles,
     get_article,
@@ -14,152 +18,94 @@ from src.tools.mcp_tools import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+templates = Jinja2Templates(directory="templates")
+
+# Tools that mutate or delete content must be explicitly confirmed in /chat.
+# Add more tool names here that need confirmation before execution.
+DESTRUCTIVE_TOOLS = {"remove_article"}
+CONFIRMATION_TTL_SECONDS = 300
+PENDING_CONFIRMATIONS: dict[str, dict] = {}
 
 
-def handle_help(_):
-    return help_endpoints()
+def _cleanup_expired_confirmations() -> None:
+    """Rensa utgångna bekräftelser från PENDING_CONFIRMATIONS."""
+    now = time.time()
+    expired = [
+        key
+        for key, value in PENDING_CONFIRMATIONS.items()
+        if value.get("expires_at", 0) < now
+    ]
+    for key in expired:
+        PENDING_CONFIRMATIONS.pop(key, None)
 
 
-def handle_list_articles(_):
-    return list_articles()
+@router.get("/")
+def root(request: Request):
+    """Renderar startsidan."""
+    return templates.TemplateResponse("index.html", {"request": request, "cache_bust": datetime.now().timestamp()})
 
 
-def handle_get_article(regex_match):
-    article_id = int(regex_match.group(1))
-    return get_article(article_id)
+@router.post("/chat")
+def chat(body: dict):
+    """Ta emot naturligt språk, låt LLM välja rätt tool med server-side guardrails."""
+    _cleanup_expired_confirmations()
+    message = body.get("message", "")
+
+    # Explicit second step: execute only if a valid server-issued confirmation id is provided.
+    if body.get("confirm") is True:
+        confirmation_id = body.get("confirmation_id")
+        if not confirmation_id:
+            return {"error": "Bekräftelse saknar confirmation_id."}
+
+        pending = PENDING_CONFIRMATIONS.pop(confirmation_id, None)
+        if not pending:
+            return {"error": "Ogiltig eller utgången bekräftelse."}
+
+        result = {"tool": pending["tool"], "args": pending["args"]}
+    else:
+        if not isinstance(message, str) or not message.strip():
+            return {"error": "Meddelande saknas."}
 
 
-def handle_publish(regex_match):
-    article_id = int(regex_match.group(1))
-    return publish(article_id)
+        # The LLM should ideally return a structured response indicating which tool to use and with what arguments.
+        # Main logic: If the LLM suggests a tool that is in DESTRUCTIVE_TOOLS, we require an explicit confirmation step before executing it.
+        # This adds a layer of safety for actions that can mutate or delete content.
+        try:
+            result = ask_llm(message)
+        except Exception as e:
+            logger.error(f"LLM-fel: {e}")
+            return {"response": f"AI-tjänsten är inte tillgänglig just nu: {type(e).__name__}"}
 
+        if "tool" in result and result["tool"] in DESTRUCTIVE_TOOLS:
+            confirmation_id = str(uuid4())
+            PENDING_CONFIRMATIONS[confirmation_id] = {
+                "tool": result["tool"],
+                "args": result["args"],
+                "expires_at": time.time() + CONFIRMATION_TTL_SECONDS,
+            }
+            return {
+                "requires_confirmation": True,
+                "confirmation_id": confirmation_id,
+                "proposed_action": {
+                    "tool": result["tool"],
+                    "args": result["args"],
+                },
+                "response": "Den här åtgärden är destruktiv och kräver bekräftelse. Vill du fortsätta?",
+            }
+    if "tool" in result:
+        tool_map = {
+            "list_articles": lambda args: list_articles(),
+            "get_article": lambda args: get_article(**args),
+            "publish": lambda args: publish(**args),
+            "unpublish": lambda args: unpublish(**args),
+            "trash": lambda args: trash(**args),
+            "create_article": lambda args: create_article(**args),
+            "edit_article": lambda args: edit_article(**args),
+            "remove_article": lambda args: remove_article(**args),
+        }
+        handler = tool_map.get(result["tool"])
+        if handler:
+            return handler(result["args"])
+        return {"error": f"Okänt verktyg: {result['tool']}"}
 
-def handle_unpublish(regex_match):
-    article_id = int(regex_match.group(1))
-    return unpublish(article_id)
-
-
-def handle_trash(regex_match):
-    article_id = int(regex_match.group(1))
-    return trash(article_id)
-
-
-def handle_create_article(regex_match):
-    # Förväntar sig att regex_match innehåller title och content i grupperna
-    title = regex_match.group(1)
-    content = regex_match.group(2)
-    return create_article(title, content)
-
-
-def handle_remove_article(regex_match):
-    article_id = int(regex_match.group(1))
-    return remove_article(article_id)
-
-
-def handle_edit_article(regex_match):
-    article_id = int(regex_match.group(1))
-    title = regex_match.group(2)
-    content = regex_match.group(3)
-    return edit_article(article_id, title, content)
-
-
-"""
-Mappar endpoint-mönster (från chat-UI:t) till MCP tool-funktioner.
-"name" är ett identifierande namn för verktyget.
-"endpoint" är den beskrivande strängen som visas i hjälpkommandot.
-"pattern" är en regex-sträng som används för att matcha inkommande endpoint-förfrågningar.
-"handler" är en funktion som tar regex-match-objektet och anropar rätt MCP tool med nödvändiga argument.
-"""
-ENDPOINT_TOOL_MAP = [
-    {
-        "name": "list_articles",
-        "endpoint": "/articles",
-        "pattern": r"^/articles$",
-        "description": "Lista alla artiklar",
-        "handler": handle_list_articles
-    },
-    {
-        "name": "get_article",
-        "endpoint": "/articles/{id}",
-        "pattern": r"^/articles/(\d+)$",
-        "description": "Visa en specifik artikel",
-        "handler": handle_get_article
-    },
-    {
-        "name": "publish",
-        "endpoint": "/articles/{id}/publish",
-        "pattern": r"^/articles/(\d+)/publish$",
-        "description": "Publicera en artikel",
-        "handler": handle_publish
-    },
-    {
-        "name": "unpublish",
-        "endpoint": "/articles/{id}/unpublish",
-        "pattern": r"^/articles/(\d+)/unpublish$",
-        "description": "Avpublicera en artikel",
-        "handler": handle_unpublish
-    },
-    {
-        "name": "trash",
-        "endpoint": "/articles/{id}/trash",
-        "pattern": r"^/articles/(\d+)/trash$",
-        "description": "Slänger (trashar) en artikel",
-        "handler": handle_trash
-    },
-    {
-        "name": "help",
-        "endpoint": "/help",
-        "pattern": r"^/help$",
-        "description": "Visa hjälpinformation",
-        "handler": handle_help
-    },
-    {
-        "name": "create_article",
-        "endpoint": "/articles/create",
-        "pattern": r"^/articles/create\s+title:(.+)\s+content:(.+)$",
-        "description": "Skapa en ny artikel med titel och innehåll",
-        "handler": handle_create_article
-    },
-    {
-        "name": "remove_article",
-        "endpoint": "/articles/{id}/remove",
-        "pattern": r"^/articles/(\d+)/remove$",
-        "description": "Ta bort en artikel permanent",
-        "handler": handle_remove_article
-    },
-    {
-        "name": "edit_article",
-        "endpoint": "/articles/{id}/edit",
-        "pattern": r"^/articles/(\d+)/edit\s+title:(.+?)\s+content:(.+?)(?:\s+alias:(\S+))?$",
-        "description": "Redigera en artikel med ny titel, innehåll",
-        "handler": handle_edit_article
-    }
-
-]
-
-
-@router.get("/mcp-proxy")
-def mcp_proxy(endpoint: str):
-    """Recieve endpoint string from chat UI and route to the correct MCP tool function."""
-    logger.info(f"Requested endpoint: {endpoint}")
-
-    for tool in ENDPOINT_TOOL_MAP:
-        regex_match = match(tool["pattern"], endpoint)
-        if regex_match:
-            logger.info(f"Matching tool: {tool['name']}")
-            return tool["handler"](regex_match)
-
-    logger.warning(f"Ingen matchning för endpoint: {endpoint}")
-    return {"error": f"Okänd endpoint: {endpoint}"}
-
-
-@router.get("/help")
-def help_endpoints():
-    """Returns available endpoints for the chat UI, dynamically from ENDPOINT_TOOL_MAP."""
-    return {
-        "tools": [
-            {"name": t["name"], "endpoint": t["endpoint"],
-                "description": t["description"]}
-            for t in ENDPOINT_TOOL_MAP
-        ]
-    }
+    return {"response": result["text"]}
