@@ -16,11 +16,16 @@ from src.tools.mcp_tools import (
     remove_article,
 )
 
+"""
+This module defines the FastAPI router for handling chat interactions.
+The chat endpoint uses server-side guardrails to ensure that any tool calls that can mutate or delete content require explicit confirmation.
+The module also maintains a temporary in-memory store for pending confirmations, which are cleaned up after a certain expiration time.
+"""
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 
-# Tools that mutate or delete content must be explicitly confirmed in /chat.
 # Add more tool names here that need confirmation before execution.
 DESTRUCTIVE_TOOLS = {"remove_article"}
 CONFIRMATION_TTL_SECONDS = 300
@@ -28,7 +33,7 @@ PENDING_CONFIRMATIONS: dict[str, dict] = {}
 
 
 def _cleanup_expired_confirmations() -> None:
-    """Rensa utgångna bekräftelser från PENDING_CONFIRMATIONS."""
+    """Cleans up expired confirmations from PENDING_CONFIRMATIONS."""
     now = time.time()
     expired = [
         key
@@ -41,13 +46,13 @@ def _cleanup_expired_confirmations() -> None:
 
 @router.get("/")
 def root(request: Request):
-    """Renderar startsidan."""
+    """Renders the homepage."""
     return templates.TemplateResponse("index.html", {"request": request, "cache_bust": datetime.now().timestamp()})
 
 
 @router.post("/chat")
 def chat(body: dict):
-    """Ta emot naturligt språk, låt LLM välja rätt tool med server-side guardrails."""
+    """Receives natural language input, lets the LLM choose the right tool with server-side guardrails."""
     _cleanup_expired_confirmations()
     message = body.get("message", "")
 
@@ -65,7 +70,6 @@ def chat(body: dict):
     else:
         if not isinstance(message, str) or not message.strip():
             return {"error": "Meddelande saknas."}
-
 
         # The LLM should ideally return a structured response indicating which tool to use and with what arguments.
         # Main logic: If the LLM suggests a tool that is in DESTRUCTIVE_TOOLS, we require an explicit confirmation step before executing it.
@@ -92,6 +96,8 @@ def chat(body: dict):
                 },
                 "response": "Den här åtgärden är destruktiv och kräver bekräftelse. Vill du fortsätta?",
             }
+
+        # if the LLM response doesn't require confirmation, we can execute it directly and return the result.
     if "tool" in result:
         tool_map = {
             "list_articles": lambda args: list_articles(),

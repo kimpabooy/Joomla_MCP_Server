@@ -1,31 +1,31 @@
 # MCP Server (Python)
 
-FastAPI-projekt for Joomla 4 Core API med tva integrationsvägar:
+FastAPI project for the Joomla 4 Core API with two integration paths:
 
-1. Webb-UI med naturligt språk via LLM (`POST /chat`)
-2. MCP-server for externa klienter (`/mcp`)
+1. Web UI natural language to the LLM (`POST /chat`)
+2. MCP server for external clients (`/mcp`)
 
-Projektet anropar Joomla API via verktyg i `mcp_tools.py`, och LLM valjer verktyg via OpenAI function calling.
+The project calls the Joomla API through tools in `mcp_tools.py`, and the LLM selects tools via OpenAI function calling.
 
 Repo: `kimpabooy/Joomla_MCP_Server`  
-Paketnamn: `joomla-mcp-server`  
+Package name: `joomla-mcp-server`  
 Python: `>= 3.13`
 
 ---
 
-## Arkitektur
+## Architecture
 
 ```text
 Browser UI (templates/index.html + static/chat.js)
      -> POST /chat
           -> src/routes/chat_router.py
                -> src/services/llm_service.py (OpenAI + tools schema)
-               -> dispatch till verktyg i src/tools/mcp_tools.py
+               -> dispatch to tools in src/tools/mcp_tools.py
                     -> src/services/joomla_service.py
                          -> Joomla 4 Core API
 
-Extern MCP-klient
-     -> /mcp (FastMCP mount i main.py)
+External MCP client
+     -> /mcp (FastMCP mount in main.py)
           -> src/tools/mcp_tools.py
                -> src/services/joomla_service.py
                     -> Joomla 4 Core API
@@ -35,41 +35,41 @@ Extern MCP-klient
 
 ## Endpoints
 
-### App-routes
+### App Routes
 
-| Method | Endpoint | Purpose                                                            |
-| ------ | -------- | ------------------------------------------------------------------ |
-| `GET`  | `/`      | Renderar chat-UI (`templates/index.html`).                         |
-| `POST` | `/chat`  | Tar emot prompt, låter LLM välja verktyg och kor Joomla-operation. |
+| Method | Endpoint | Purpose                                                                   |
+| ------ | -------- | ------------------------------------------------------------------------- |
+| `GET`  | `/`      | Renders the chat UI (`templates/index.html`).                             |
+| `POST` | `/chat`  | Receives a prompt, lets the LLM choose tools, and runs Joomla operations. |
 
-### MCP-route
+### MCP Route
 
-| Method     | Endpoint | Purpose                                                                   |
-| ---------- | -------- | ------------------------------------------------------------------------- |
-| ASGI mount | `/mcp`   | Exponerar FastMCP-verktyg for externa MCP-klienter (SSE/streamable HTTP). |
+| Method     | Endpoint | Purpose                                                               |
+| ---------- | -------- | --------------------------------------------------------------------- |
+| ASGI mount | `/mcp`   | Exposes FastMCP tools for external MCP clients (SSE/streamable HTTP). |
 
-Notering: `/clear` hanteras på klientsidan i `static/chat.js` och rensar bara chatloggen i browsern.
+Note: `/clear` is handled on the client side in `static/chat.js` and only clears the chat log in the browser.
 
 ---
 
 ## Tools (LLM + MCP)
 
-Definierade i `src/tools/mcp_tools.py` och speglade som function-calling schema i `src/services/llm_service.py`.
+Defined in `src/tools/mcp_tools.py` and mirrored as function-calling schema in `src/services/llm_service.py`.
 
-| Tool             | Purpose                                          |
-| ---------------- | ------------------------------------------------ |
-| `list_articles`  | Hamta alla artiklar.                             |
-| `get_article`    | Hamta artikel med ID.                            |
-| `publish`        | Publicera artikel med ID.                        |
-| `unpublish`      | Avpublicera artikel med ID.                      |
-| `trash`          | Flytta artikel till papperskorg.                 |
-| `create_article` | Skapa artikel med titel och innehall.            |
-| `edit_article`   | Redigera artikel med ny titel och nytt innehall. |
-| `remove_article` | Ta bort artikel permanent.                       |
+| Tool             | Purpose                                       |
+| ---------------- | --------------------------------------------- |
+| `list_articles`  | Fetch all articles.                           |
+| `get_article`    | Fetch an article by ID.                       |
+| `publish`        | Publish an article by ID.                     |
+| `unpublish`      | Unpublish an article by ID.                   |
+| `trash`          | Move an article to trash.                     |
+| `create_article` | Create an article with title and content.     |
+| `edit_article`   | Edit an article with a new title and content. |
+| `remove_article` | Delete an article permanently.                |
 
 ---
 
-## Projektstruktur
+## Project Structure
 
 ```text
 ├── main.py
@@ -92,31 +92,31 @@ Definierade i `src/tools/mcp_tools.py` och speglade som function-calling schema 
 
 ---
 
-## Kom igang
+## Getting Started
 
-### 1. Installera dependencies
+### 1. Install Dependencies
 
 ```bash
 uv sync
 ```
 
-### 2. Konfigurera miljo
+### 2. Configure Environment
 
-Skapa `.env` i projektroten:
+Create `.env` in the project root:
 
 ```env
-JOOMLA_URL=din_joomla_url_har
-JOOMLA_API_TOKEN=din_token_har
-OPENAI_API_KEY=din_openai_nyckel_har
+JOOMLA_URL=your_joomla_url_here
+JOOMLA_API_TOKEN=your_token_here
+OPENAI_API_KEY=your_openai_key_here
 ```
 
-### 3. Starta servern
+### 3. Start the Server
 
 ```bash
 uv run main.py
 ```
 
-Server: `http://127.0.0.1:8000`
+Local Server: `http://127.0.0.1:8000`
 
 ---
 

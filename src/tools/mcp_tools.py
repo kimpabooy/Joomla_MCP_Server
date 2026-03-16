@@ -11,7 +11,13 @@ from src.services.joomla_service import (
     edit_joomla_article,
 )
 
-# Create the FastMCP server instance
+"""
+This module defines the MCP tools that allow the LLM to interact with Joomla articles.
+Each tool corresponds to a specific action and calls the appropriate function from joomla_service.
+The tools are decorated with @mcp.tool() to be registered with the FastMCP server.
+The module also includes a helper function to format article data into a more readable structure before returning it to the LLM.
+"""
+
 mcp = FastMCP("Joomla MCP Server")
 
 
@@ -37,13 +43,6 @@ def format_article_data(article: dict) -> dict:
         "created": attributes.get("created"),
         "last_modified": attributes.get("modified")
     }
-
-
-""""
-Defines MCP tools corresponding to the various Joomla article operations.
-Each tool is decorated with @mcp.tool() and has a clear docstring describing its functionality
-Each tool calls the corresponding function in joomla_service and formats the result before returning it.
-"""
 
 
 @mcp.tool()

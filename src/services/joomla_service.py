@@ -2,6 +2,10 @@ import requests
 from os import getenv
 from typing import Any, Dict, List
 
+"""
+This module defines functions to interact with the Joomla API for managing articles.
+Each function takes an authentication token and the necessary parameters to perform the action and returns the result in a structured format.
+"""
 
 JOOMLA_URL = getenv("JOOMLA_URL")
 CONTENT_TYPE = "application/json"
@@ -81,6 +85,10 @@ def remove_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
     url = f"{JOOMLA_URL}/content/articles/{article_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
+
+    # if we cant find the article
+    if response.status_code == 404:
+        raise Exception(f"Article with ID {article_id} not found.")
 
     if response.status_code == 409:
         # Joomla often requires item to be trashed before permanent deletion.
