@@ -1,26 +1,48 @@
-// --- Dynamiskt hämta MCP tools och rendera i listan ---
-fetch('/help')
-    .then(resp => resp.json())
-    .then(data => {
-        const list = document.getElementById('endpoints-list');
-        list.innerHTML = '';
-        if (data.tools && data.tools.length > 0) {
-            data.tools.forEach(tool => {
-                const li = document.createElement('li');
-                li.textContent = `${tool.endpoint}`;
-                list.appendChild(li);
-            });
-        } else {
-            list.innerHTML = '<li>Inga tools hittades</li>';
-        }
-    })
-    .catch(() => {
-        const list = document.getElementById('endpoints-list');
-        list.innerHTML = '<li>Kunde inte hämta tools</li>';
-    });
-
-// --- Hantera Enter-tangenten i textarean ---
 const textarea = document.getElementById('endpointInput');
+const chatlog = document.getElementById('chatlog');
+const responseBox = document.getElementById('endpoint-response');
+
+function addUserMessage(text) {
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-msg user';
+    userMsg.textContent = text;
+    chatlog.appendChild(userMsg);
+}
+
+function addBotMessage(text) {
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-msg bot';
+    botMsg.textContent = text;
+    chatlog.appendChild(botMsg);
+}
+
+async function sendToLLM(message, shownMessage = message) {
+    addUserMessage(shownMessage);
+    responseBox.innerHTML = '<span style="color:#b3e5ff;">Tänker...</span>';
+
+    try {
+        const resp = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+
+        const data = await resp.json();
+
+        if (data.response) {
+            addBotMessage(data.response);
+            responseBox.innerHTML = '';
+        } else {
+            responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+    } catch (err) {
+        addBotMessage('Fel vid kommunikation med AI. Prova igen.');
+        responseBox.innerHTML = '';
+    }
+
+    chatlog.scrollTop = chatlog.scrollHeight;
+}
+
 textarea.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -28,82 +50,45 @@ textarea.addEventListener('keydown', function (e) {
     }
 });
 
-// --- Hantera formulärets submit-event ---
 document.getElementById('chatForm').onsubmit = async function (e) {
     e.preventDefault();
-    let endpoint = textarea.value.trim();
-    if (!endpoint) return;
-    let chatlog = document.getElementById('chatlog');
-    let responseBox = document.getElementById('endpoint-response');
+    const prompt = textarea.value.trim();
+    if (!prompt) return;
 
-    // --- Om användaren skriver /clear eller clear, rensa chatten ---
-    if (endpoint === '/clear' || endpoint === 'clear') {
-        chatlog.innerHTML = '<div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>';
+    if (prompt === '/clear' || prompt === 'clear') {
+        chatlog.innerHTML = '<div class="chat-msg bot">Skriv vad du vill göra i Joomla och tryck <b>Enter</b></div>';
         responseBox.innerHTML = '';
         textarea.value = '';
         textarea.focus();
         return;
     }
 
-    // --- Om användaren skriver /articles/create utan parametrar, visa modal ---
-    if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
-    if (endpoint === '/articles/create') {
+    if (prompt === '/articles/create') {
         textarea.value = '';
-        showCreateModal(chatlog, responseBox);
+        showCreateModal();
         return;
     }
 
-    // --- Om användaren skriver /articles/{id}/edit, visa edit-modal ---
-    const editMatch = endpoint.match(/^\/articles(?:\/([\d]+))?\/edit$/);
+    const editMatch = prompt.match(/^\/articles(?:\/([\d]+))?\/edit$/);
     if (editMatch) {
         textarea.value = '';
-        showEditModal(chatlog, responseBox, editMatch[1] || '');
+        showEditModal(editMatch[1] || '');
         return;
     }
 
-    // --- Om användaren skriver /articles/{id}/remove, visa bekräftelse ---
-    const removeMatch = endpoint.match(/^\/articles\/(\d+)\/remove$/);
+    const removeMatch = prompt.match(/^\/articles\/(\d+)\/remove$/);
     if (removeMatch) {
         textarea.value = '';
-        showConfirmRemoveModal(chatlog, responseBox, removeMatch[1]);
+        showConfirmRemoveModal(removeMatch[1]);
         return;
     }
-    let userMsg = document.createElement('div');
-    userMsg.className = 'chat-msg user';
-    userMsg.textContent = textarea.value;
-    chatlog.appendChild(userMsg);
 
-    // --- Automatiskt skicka via /mcp-proxy ---
-    const proxyEndpoint = `/mcp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
-
-    // --- Visar en laddningsindikator om endpointet tar tid att svara ---
-    responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
     textarea.value = '';
     textarea.focus();
-    try {
-        // --- Skicka en förfrågan till proxy-endpointen ---
-        const resp = await fetch(proxyEndpoint);
-        if (resp.ok) {
-            const data = await resp.json();
-            responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-        } else {
-            let botMsg = document.createElement('div');
-            botMsg.className = 'chat-msg bot';
-            botMsg.innerHTML = 'Endpoint <b>' + endpoint + '</b> finns inte (HTTP ' + resp.status + '). Prova igen:';
-            chatlog.appendChild(botMsg);
-            chatlog.scrollTop = chatlog.scrollHeight;
-        }
-    } catch (err) {
-        let botMsg = document.createElement('div');
-        botMsg.className = 'chat-msg bot';
-        botMsg.textContent = 'Fel vid kontroll av endpoint. Prova igen:';
-        chatlog.appendChild(botMsg);
-        chatlog.scrollTop = chatlog.scrollHeight;
-    }
+    await sendToLLM(prompt, prompt);
 };
 
-// --- Modal för att bekräfta borttagning ---
-function showConfirmRemoveModal(chatlog, responseBox, articleId) {
+function showConfirmRemoveModal(articleId) {
     const modal = document.getElementById('confirm-remove-modal');
     document.getElementById('confirm-remove-text').textContent =
         `Vill du verkligen ta bort artikel ${articleId} permanent? Detta går inte att ångra.`;
@@ -111,45 +96,19 @@ function showConfirmRemoveModal(chatlog, responseBox, articleId) {
 
     document.getElementById('confirm-remove-cancel').onclick = function () {
         modal.close();
-        document.getElementById('endpointInput').focus();
+        textarea.focus();
     };
 
     document.getElementById('confirm-remove-yes').onclick = async function () {
         modal.close();
-
-        let userMsg = document.createElement('div');
-        userMsg.className = 'chat-msg user';
-        userMsg.textContent = `/articles/${articleId}/remove`;
-        chatlog.appendChild(userMsg);
-        chatlog.scrollTop = chatlog.scrollHeight;
-
-        const proxyEndpoint = `/mcp-proxy?endpoint=${encodeURIComponent(`/articles/${articleId}/remove`)}`;
-        responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
-
-        try {
-            const resp = await fetch(proxyEndpoint);
-            if (resp.ok) {
-                const data = await resp.json();
-                responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            } else {
-                let botMsg = document.createElement('div');
-                botMsg.className = 'chat-msg bot';
-                botMsg.innerHTML = 'Kunde inte ta bort artikel (HTTP ' + resp.status + ')';
-                chatlog.appendChild(botMsg);
-            }
-        } catch (err) {
-            let botMsg = document.createElement('div');
-            botMsg.className = 'chat-msg bot';
-            botMsg.textContent = 'Fel vid borttagning av artikel. Prova igen.';
-            chatlog.appendChild(botMsg);
-        }
-        chatlog.scrollTop = chatlog.scrollHeight;
-        document.getElementById('endpointInput').focus();
+        const llmPrompt = `Ta bort artikel med ID ${articleId} permanent.`;
+        const shownMessage = `/articles/${articleId}/remove`;
+        await sendToLLM(llmPrompt, shownMessage);
+        textarea.focus();
     };
 }
 
-// --- Modal för att redigera artikel ---
-function showEditModal(chatlog, responseBox, prefillId) {
+function showEditModal(prefillId) {
     const modal = document.getElementById('edit-modal');
     const idInput = document.getElementById('edit-modal-id');
     const titleInput = document.getElementById('edit-modal-title');
@@ -158,6 +117,7 @@ function showEditModal(chatlog, responseBox, prefillId) {
     titleInput.value = '';
     contentInput.value = '';
     modal.showModal();
+
     if (prefillId) {
         titleInput.focus();
     } else {
@@ -166,7 +126,7 @@ function showEditModal(chatlog, responseBox, prefillId) {
 
     document.getElementById('edit-modal-cancel').onclick = function () {
         modal.close();
-        document.getElementById('endpointInput').focus();
+        textarea.focus();
     };
 
     document.getElementById('edit-modal-submit').onclick = async function () {
@@ -176,40 +136,14 @@ function showEditModal(chatlog, responseBox, prefillId) {
         if (!articleId || !title || !content) return;
         modal.close();
 
-        let userMsg = document.createElement('div');
-        userMsg.className = 'chat-msg user';
-        userMsg.textContent = `/articles/${articleId}/edit title:${title} content:${content}`;
-        chatlog.appendChild(userMsg);
-        chatlog.scrollTop = chatlog.scrollHeight;
-
-        const endpoint = `/articles/${articleId}/edit title:${title} content:${content}`;
-        const proxyEndpoint = `/mcp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
-        responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
-
-        try {
-            const resp = await fetch(proxyEndpoint);
-            if (resp.ok) {
-                const data = await resp.json();
-                responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            } else {
-                let botMsg = document.createElement('div');
-                botMsg.className = 'chat-msg bot';
-                botMsg.innerHTML = 'Kunde inte redigera artikel (HTTP ' + resp.status + ')';
-                chatlog.appendChild(botMsg);
-            }
-        } catch (err) {
-            let botMsg = document.createElement('div');
-            botMsg.className = 'chat-msg bot';
-            botMsg.textContent = 'Fel vid redigering av artikel. Prova igen.';
-            chatlog.appendChild(botMsg);
-        }
-        chatlog.scrollTop = chatlog.scrollHeight;
-        document.getElementById('endpointInput').focus();
+        const shownMessage = `/articles/${articleId}/edit title:${title} content:${content}`;
+        const llmPrompt = `Redigera artikel med ID ${articleId}. Sätt ny titel till "${title}" och nytt innehåll till "${content}".`;
+        await sendToLLM(llmPrompt, shownMessage);
+        textarea.focus();
     };
 }
 
-// --- Modal för att skapa artikel ---
-function showCreateModal(chatlog, responseBox) {
+function showCreateModal() {
     const modal = document.getElementById('create-modal');
     const titleInput = document.getElementById('modal-title');
     const contentInput = document.getElementById('modal-content');
@@ -220,7 +154,7 @@ function showCreateModal(chatlog, responseBox) {
 
     document.getElementById('modal-cancel').onclick = function () {
         modal.close();
-        document.getElementById('endpointInput').focus();
+        textarea.focus();
     };
 
     document.getElementById('modal-submit').onclick = async function () {
@@ -229,35 +163,9 @@ function showCreateModal(chatlog, responseBox) {
         if (!title || !content) return;
         modal.close();
 
-        // Visa i chatten vad som skickas
-        let userMsg = document.createElement('div');
-        userMsg.className = 'chat-msg user';
-        userMsg.textContent = `/articles/create title:${title} content:${content}`;
-        chatlog.appendChild(userMsg);
-        chatlog.scrollTop = chatlog.scrollHeight;
-
-        const endpoint = `/articles/create title:${title} content:${content}`;
-        const proxyEndpoint = `/mcp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
-        responseBox.innerHTML = '<span style="color:#b3e5ff;">Laddar...</span>';
-
-        try {
-            const resp = await fetch(proxyEndpoint);
-            if (resp.ok) {
-                const data = await resp.json();
-                responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            } else {
-                let botMsg = document.createElement('div');
-                botMsg.className = 'chat-msg bot';
-                botMsg.innerHTML = 'Kunde inte skapa artikel (HTTP ' + resp.status + ')';
-                chatlog.appendChild(botMsg);
-            }
-        } catch (err) {
-            let botMsg = document.createElement('div');
-            botMsg.className = 'chat-msg bot';
-            botMsg.textContent = 'Fel vid skapande av artikel. Prova igen.';
-            chatlog.appendChild(botMsg);
-        }
-        chatlog.scrollTop = chatlog.scrollHeight;
-        document.getElementById('endpointInput').focus();
+        const shownMessage = `/articles/create title:${title} content:${content}`;
+        const llmPrompt = `Skapa en ny artikel med titeln "${title}" och innehållet "${content}".`;
+        await sendToLLM(llmPrompt, shownMessage);
+        textarea.focus();
     };
 }
