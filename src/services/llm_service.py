@@ -2,9 +2,11 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletionToolParam
 from os import getenv
 import json
+
 """
-llm_service.py - Hanterar kommunikationen med OpenAI:s LLM och definierar de verktyg (tools) som LLM kan använda för att interagera med Joomla-artiklar.
-https://developers.openai.com/api/docs/guides/function-calling
+This module defines the available tools in a format compatible with OpenAI's function calling schema,
+and provides a function to send user messages to the LLM and receive either a tool call or a text response.
+More information: https://developers.openai.com/api/docs/guides/function-calling
 """
 
 client = OpenAI(api_key=getenv("OPENAI_API_KEY"))
