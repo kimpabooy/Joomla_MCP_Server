@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from src.services.llm_service import ask_llm
 from src.tools.mcp_tools import (
@@ -27,6 +27,11 @@ def root(request: Request):
 @router.post("/chat")
 def chat(body: dict):
     """Ta emot naturligt språk, låt LLM välja rätt tool."""
+    if "message" not in body:
+        raise HTTPException(
+            status_code=422,
+            detail="Request body måste innehålla nyckeln 'message'.",
+        )
     try:
         result = ask_llm(body["message"])
     except Exception as e:
