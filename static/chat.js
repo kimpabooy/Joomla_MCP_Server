@@ -7,10 +7,22 @@ function scrollChatToBottom() {
     chatlog.scrollTop = chatlog.scrollHeight;
 }
 
+function messageSentTime() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 function addUserMessage(text) {
     const userMsg = document.createElement('div');
     userMsg.className = 'chat-msg user';
-    userMsg.textContent = text;
+    const textSpan = document.createElement('span');
+    textSpan.className = 'msg-text';
+    textSpan.textContent = text;
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'timestamp';
+    timeSpan.textContent = messageSentTime();
+    userMsg.appendChild(textSpan);
+    userMsg.appendChild(timeSpan);
     chatlog.appendChild(userMsg);
     scrollChatToBottom();
 }
@@ -18,12 +30,19 @@ function addUserMessage(text) {
 function addBotMessage(text, options = {}) {
     const botMsg = document.createElement('div');
     botMsg.className = 'chat-msg bot';
-
     if (options.pending) {
         botMsg.classList.add('pending');
     }
-
-    botMsg.textContent = text;
+    const textSpan = document.createElement('span');
+    textSpan.className = 'msg-text';
+    textSpan.textContent = text;
+    botMsg.appendChild(textSpan);
+    if (!options.pending) {
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'timestamp';
+        timeSpan.textContent = messageSentTime();
+        botMsg.appendChild(timeSpan);
+    }
     chatlog.appendChild(botMsg);
     scrollChatToBottom();
     return botMsg;
