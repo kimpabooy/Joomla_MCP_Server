@@ -3,7 +3,6 @@ from os import getenv
 from typing import Any, Dict, List
 
 
-TOKEN = getenv("JOOMLA_API_TOKEN")
 JOOMLA_URL = getenv("JOOMLA_URL")
 CONTENT_TYPE = "application/json"
 ACCEPT = "*/*"
@@ -111,7 +110,6 @@ def edit_joomla_article(token: str, article_id: int, title: str, articletext: st
     """Edits an existing article in Joomla based on its ID."""
     url = f"{JOOMLA_URL}/content/articles/{article_id}"
     headers = get_headers(token)
-    # generated_alias = alias if alias else title.lower().replace(" ", "-")
     alias = title.lower().strip() + "- article"
     data = {
         "title": title,
