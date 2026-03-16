@@ -9,6 +9,7 @@ from src.services.joomla_service import (
     trash_joomla_article,
     remove_joomla_article,
     edit_joomla_article,
+    copy_joomla_article,
 )
 
 """
@@ -105,6 +106,16 @@ def edit_article(article_id: int, title: str, content: str) -> dict:
     """Edits an existing article based on its ID with new title and content. Alias updates automatically."""
     try:
         result = edit_joomla_article(get_token(), article_id, title, content)
+        return format_article_data(result)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def copy_article(article_id: int, new_title: str) -> dict:
+    """Creates a copy of an existing article based on its ID. The new article will have the provided title and the same content as the original."""
+    try:
+        result = copy_joomla_article(get_token(), article_id, new_title)
         return format_article_data(result)
     except Exception as e:
         return {"error": str(e)}

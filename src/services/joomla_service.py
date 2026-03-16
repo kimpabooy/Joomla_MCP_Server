@@ -143,3 +143,14 @@ def edit_joomla_article(token: str, article_id: int, title: str, articletext: st
         raise Exception(
             f"Joomla API error ({response.status_code}): {error_detail}")
     return response.json().get("data", {})
+
+
+def copy_joomla_article(token: str, article_id: int, new_title: str) -> Dict[str, Any]:
+    """Copies an existing article to create a new one with a new title."""
+    original_article = get_joomla_article(token, article_id)
+    if not original_article:
+        raise Exception(f"Article with ID {article_id} not found.")
+
+    original_content = original_article.get(
+        "attributes", {}).get("articletext", "")
+    return create_joomla_article(token, new_title, original_content)

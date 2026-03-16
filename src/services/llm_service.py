@@ -121,7 +121,23 @@ TOOLS: list[ChatCompletionToolParam] = [
                 "required": ["article_id"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "copy_article",
+            "description": "Kopiera en befintlig artikel för att skapa en ny med en ny titel och samma innehåll",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "article_id": {"type": "integer", "description": "Artikelns ID"},
+                    "new_title": {"type": "string", "description": "Ny titel för den kopierade artikeln"}
+                },
+                "required": ["article_id", "new_title"]
+            }
+        }
     }
+
 ]
 
 

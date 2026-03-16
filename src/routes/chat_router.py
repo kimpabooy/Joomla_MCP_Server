@@ -14,6 +14,8 @@ from src.tools.mcp_tools import (
     create_article,
     edit_article,
     remove_article,
+    copy_article,
+
 )
 
 """
@@ -108,6 +110,7 @@ def chat(body: dict):
             "create_article": lambda args: create_article(**args),
             "edit_article": lambda args: edit_article(**args),
             "remove_article": lambda args: remove_article(**args),
+            "copy_article": lambda args: copy_article(**args),
         }
         handler = tool_map.get(result["tool"])
         if handler:
