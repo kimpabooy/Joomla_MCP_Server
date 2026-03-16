@@ -16,7 +16,7 @@ function addBotMessage(text) {
     chatlog.appendChild(botMsg);
 }
 
-async function sendToLLM(message, shownMessage = message) {
+async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
     addUserMessage(shownMessage);
     responseBox.innerHTML = '<span style="color:#b3e5ff;">Tänker...</span>';
 
@@ -24,10 +24,30 @@ async function sendToLLM(message, shownMessage = message) {
         const resp = await fetch('/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ message, ...extraPayload })
         });
 
         const data = await resp.json();
+
+        if (data.requires_confirmation) {
+            addBotMessage(data.response || 'Åtgärden kräver bekräftelse.');
+            responseBox.innerHTML = '';
+
+            const confirmed = window.confirm('Destruktiv åtgärd upptäckt. Är du säker på att du vill fortsätta?');
+            if (confirmed) {
+                await sendToLLM(
+                    'bekräfta',
+                    `Bekräftar: ${data.proposed_action?.tool || 'destruktiv åtgärd'}`,
+                    {
+                        confirm: true,
+                        confirmation_id: data.confirmation_id
+                    }
+                );
+            } else {
+                addBotMessage('Åtgärden avbröts.');
+            }
+            return;
+        }
 
         if (data.response) {
             addBotMessage(data.response);

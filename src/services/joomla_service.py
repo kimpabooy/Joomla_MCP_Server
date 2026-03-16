@@ -82,8 +82,20 @@ def remove_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 
-    response.raise_for_status()
-    return {"message": f"Article {article_id} has been permanently deleted."}
+    if response.status_code == 409:
+        # Joomla often requires item to be trashed before permanent deletion.
+        trash_joomla_article(token, article_id)
+        response = requests.delete(url, headers=headers)
+
+    if not response.ok:
+        error_detail = response.text
+        raise Exception(
+            f"Joomla API error ({response.status_code}): {error_detail}"
+        )
+
+    return {
+        "message": f"Article {article_id} has been permanently deleted.",
+    }
 
 
 def create_joomla_article(token: str, title: str, articletext: str, catid: int = 2) -> Dict[str, Any]:

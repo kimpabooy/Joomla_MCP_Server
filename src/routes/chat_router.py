@@ -1,5 +1,7 @@
 import logging
+import time
 from datetime import datetime
+from uuid import uuid4
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from src.services.llm_service import ask_llm
@@ -18,21 +20,78 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 
+# Tools that mutate or delete content must be explicitly confirmed in /chat.
+# Add more tool names here that need confirmation before execution.
+DESTRUCTIVE_TOOLS = {"remove_article"}
+CONFIRMATION_TTL_SECONDS = 300
+PENDING_CONFIRMATIONS: dict[str, dict] = {}
+
+
+def _cleanup_expired_confirmations() -> None:
+    """Rensa utgångna bekräftelser från PENDING_CONFIRMATIONS."""
+    now = time.time()
+    expired = [
+        key
+        for key, value in PENDING_CONFIRMATIONS.items()
+        if value.get("expires_at", 0) < now
+    ]
+    for key in expired:
+        PENDING_CONFIRMATIONS.pop(key, None)
+
 
 @router.get("/")
 def root(request: Request):
+    """Renderar startsidan."""
     return templates.TemplateResponse("index.html", {"request": request, "cache_bust": datetime.now().timestamp()})
 
 
 @router.post("/chat")
 def chat(body: dict):
-    """Ta emot naturligt språk, låt LLM välja rätt tool."""
-    try:
-        result = ask_llm(body["message"])
-    except Exception as e:
-        logger.error(f"LLM-fel: {e}")
-        return {"response": f"AI-tjänsten är inte tillgänglig just nu: {type(e).__name__}"}
+    """Ta emot naturligt språk, låt LLM välja rätt tool med server-side guardrails."""
+    _cleanup_expired_confirmations()
+    message = body.get("message", "")
 
+    # Explicit second step: execute only if a valid server-issued confirmation id is provided.
+    if body.get("confirm") is True:
+        confirmation_id = body.get("confirmation_id")
+        if not confirmation_id:
+            return {"error": "Bekräftelse saknar confirmation_id."}
+
+        pending = PENDING_CONFIRMATIONS.pop(confirmation_id, None)
+        if not pending:
+            return {"error": "Ogiltig eller utgången bekräftelse."}
+
+        result = {"tool": pending["tool"], "args": pending["args"]}
+    else:
+        if not isinstance(message, str) or not message.strip():
+            return {"error": "Meddelande saknas."}
+
+
+        # The LLM should ideally return a structured response indicating which tool to use and with what arguments.
+        # Main logic: If the LLM suggests a tool that is in DESTRUCTIVE_TOOLS, we require an explicit confirmation step before executing it.
+        # This adds a layer of safety for actions that can mutate or delete content.
+        try:
+            result = ask_llm(message)
+        except Exception as e:
+            logger.error(f"LLM-fel: {e}")
+            return {"response": f"AI-tjänsten är inte tillgänglig just nu: {type(e).__name__}"}
+
+        if "tool" in result and result["tool"] in DESTRUCTIVE_TOOLS:
+            confirmation_id = str(uuid4())
+            PENDING_CONFIRMATIONS[confirmation_id] = {
+                "tool": result["tool"],
+                "args": result["args"],
+                "expires_at": time.time() + CONFIRMATION_TTL_SECONDS,
+            }
+            return {
+                "requires_confirmation": True,
+                "confirmation_id": confirmation_id,
+                "proposed_action": {
+                    "tool": result["tool"],
+                    "args": result["args"],
+                },
+                "response": "Den här åtgärden är destruktiv och kräver bekräftelse. Vill du fortsätta?",
+            }
     if "tool" in result:
         tool_map = {
             "list_articles": lambda args: list_articles(),
