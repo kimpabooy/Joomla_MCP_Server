@@ -20,19 +20,22 @@
 
             <section id="chatbox">
                 <div id="chatlog">
-                    <div class="chat-msg bot">Skriv in en <b>Endpoint</b> och tryck <b>Enter</b></div>
+                    <div class="chat-msg bot">Skriv vad du vill göra i Joomla och tryck <b>Enter</b></div>
                 </div>
                 <form id="chatForm" autocomplete="off">
-                    <textarea id="endpointInput" placeholder="Skriv ett kommando..." rows="2" required></textarea>
+                    <textarea id="endpointInput" placeholder="Skriv en prompt.." rows="2" required></textarea>
                 </form>
             </section>
 
             <section id="endpoints-box">
-                <h2>Endpoints</h2>
+                <h2>Exempelprompter</h2>
                 <ul id="endpoints-list">
-                    <li>Laddar...</li>
+                    <li>Lista alla artiklar</li>
+                    <li>Hämta artikel med ID 12</li>
+                    <li>Publicera artikel 12</li>
+                    <li>Skapa artikel: titel X, innehåll Y</li>
                 </ul>
-                <p>Extra: /clear, /help</p>
+                <p>Extra: /clear</p>
             </section>
         </div>
     </main>
