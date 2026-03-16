@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCP Server</title>
+    <title>Joomla MCP Server</title>
     <link rel="stylesheet" href="/static/style.css?v={{ cache_bust }}">
 </head>
 
@@ -14,16 +14,20 @@
 
         <div id="main-flex">
             <section id="response-box">
-                <h2>Svar</h2>
+                <h2>Systemstatus</h2>
                 <div id="endpoint-response"></div>
             </section>
 
             <section id="chatbox">
                 <div id="chatlog">
-                    <div class="chat-msg bot">Skriv vad du vill göra i Joomla och tryck <b>Enter</b></div>
+                    <div class="chat-msg bot">Hej! Jag kan hjälpa dig att hantera Joomla-artiklar. Vad vill du göra?
+                    </div>
                 </div>
                 <form id="chatForm" autocomplete="off">
-                    <textarea id="endpointInput" placeholder="Skriv en prompt.." rows="2" required></textarea>
+                    <div class="input-wrap">
+                        <textarea id="endpointInput" placeholder="Skriv ett meddelande..." rows="2" required></textarea>
+                        <button id="sendBtn" type="submit" aria-label="Skicka">Skicka</button>
+                    </div>
                 </form>
             </section>
 

@@ -1,24 +1,38 @@
 const textarea = document.getElementById('endpointInput');
 const chatlog = document.getElementById('chatlog');
 const responseBox = document.getElementById('endpoint-response');
+const WELCOME_MESSAGE = 'Hej! Jag kan hjälpa dig att hantera Joomla-artiklar. Vad vill du göra?';
+
+function scrollChatToBottom() {
+    chatlog.scrollTop = chatlog.scrollHeight;
+}
 
 function addUserMessage(text) {
     const userMsg = document.createElement('div');
     userMsg.className = 'chat-msg user';
     userMsg.textContent = text;
     chatlog.appendChild(userMsg);
+    scrollChatToBottom();
 }
 
-function addBotMessage(text) {
+function addBotMessage(text, options = {}) {
     const botMsg = document.createElement('div');
     botMsg.className = 'chat-msg bot';
+
+    if (options.pending) {
+        botMsg.classList.add('pending');
+    }
+
     botMsg.textContent = text;
     chatlog.appendChild(botMsg);
+    scrollChatToBottom();
+    return botMsg;
 }
 
 async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
     addUserMessage(shownMessage);
-    responseBox.innerHTML = '<span style="color:#b3e5ff;">Tänker...</span>';
+    responseBox.innerHTML = '<span class="status-thinking">AI bearbetar begäran...</span>';
+    const pendingBotMsg = addBotMessage('AI tänker...', { pending: true });
 
     try {
         const resp = await fetch('/chat', {
@@ -30,6 +44,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
         const data = await resp.json();
 
         if (data.requires_confirmation) {
+            pendingBotMsg.remove();
             addBotMessage(data.response || 'Åtgärden kräver bekräftelse.');
             responseBox.innerHTML = '';
 
@@ -50,17 +65,19 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
         }
 
         if (data.response) {
+            pendingBotMsg.remove();
             addBotMessage(data.response);
             responseBox.innerHTML = '';
         } else {
+            pendingBotMsg.remove();
             responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            addBotMessage('Fick ett svar utan text. Se systemstatus till vänster för detaljer.');
         }
     } catch (err) {
+        pendingBotMsg.remove();
         addBotMessage('Fel vid kommunikation med AI. Prova igen.');
         responseBox.innerHTML = '';
     }
-
-    chatlog.scrollTop = chatlog.scrollHeight;
 }
 
 textarea.addEventListener('keydown', function (e) {
@@ -76,10 +93,11 @@ document.getElementById('chatForm').onsubmit = async function (e) {
     if (!prompt) return;
 
     if (prompt === '/clear' || prompt === 'clear') {
-        chatlog.innerHTML = '<div class="chat-msg bot">Skriv vad du vill göra i Joomla och tryck <b>Enter</b></div>';
+        chatlog.innerHTML = `<div class="chat-msg bot">${WELCOME_MESSAGE}</div>`;
         responseBox.innerHTML = '';
         textarea.value = '';
         textarea.focus();
+        scrollChatToBottom();
         return;
     }
 
