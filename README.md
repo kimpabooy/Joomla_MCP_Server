@@ -19,8 +19,9 @@ Python: `>= 3.13`
 Browser UI (templates/index.html + static/chat.js)
      -> POST /chat
           -> src/routes/chat_router.py
-               -> src/services/llm_service.py (OpenAI + tools schema)
-               -> dispatch to tools in src/tools/mcp_tools.py
+               -> src/services/llm_service.py (OpenAI + OPENAI_TOOL_SCHEMAS)
+               -> server-side guardrails + TOOL_MAP dispatch
+               -> src/tools/mcp_tools.py
                     -> src/services/joomla_service.py
                          -> Joomla 4 Core API
 
@@ -30,6 +31,46 @@ External MCP client
                -> src/services/joomla_service.py
                     -> Joomla 4 Core API
 ```
+
+---
+
+## Responsibilities (Tools)
+
+Different kind of tool-names appear in multiple places, but each layer has a different responsibility.
+Here are some explanation:
+
+1. `src/services/llm_service.py`
+   - `OPENAI_TOOL_SCHEMAS` Describes tools as OpenAI function-calling schema.
+   - Purpose: Tells the model what tools are available and what kind of arguments are required.
+
+2. `src/routes/chat_router.py`
+   - `TOOL_MAP` Maps tool names from model output to Python callables.
+   - Purpose: Runtime dispatch, execution flow, and confirmation guardrails.
+
+3. `src/tools/mcp_tools.py`
+   - `@mcp.tool()` Functions implement the actual Joomla operations.
+   - Purpose: Business actions and MCP exposure for external clients.
+
+In short:
+
+- `llm_service.py` = Schema/Contract for planning
+- `chat_router.py` = Orchestration and execution safety
+- `mcp_tools.py` = Implementation
+
+---
+
+---
+
+## Add a New Tool (Checklist)
+
+When adding a tool, update all three layers:
+
+1. Implement function in `src/tools/mcp_tools.py` (and decorate with `@mcp.tool()`).
+2. Add schema entry in `OPENAI_TOOL_SCHEMAS` in `src/services/llm_service.py`.
+3. Add dispatch entry in `TOOL_MAP` in `src/routes/chat_router.py`.
+4. If destructive, add the tool name to `DESTRUCTIVE_TOOLS` in `src/routes/chat_router.py`.
+
+This keeps chat flow and external MCP flow aligned.
 
 ---
 
