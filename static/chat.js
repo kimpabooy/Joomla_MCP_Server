@@ -12,6 +12,7 @@ function messageSentTime() {
     return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+// Adds a user message to the chat log with the current timestamp.
 function addUserMessage(text) {
     const userMsg = document.createElement('div');
     userMsg.className = 'chat-msg user';
@@ -27,6 +28,7 @@ function addUserMessage(text) {
     scrollChatToBottom();
 }
 
+// Adds a bot message to the chat log. If options.pending is true, it shows a "thinking" state without a timestamp.
 function addBotMessage(text, options = {}) {
     const botMsg = document.createElement('div');
     botMsg.className = 'chat-msg bot';
@@ -37,6 +39,8 @@ function addBotMessage(text, options = {}) {
     textSpan.className = 'msg-text';
     textSpan.textContent = text;
     botMsg.appendChild(textSpan);
+
+    // Add a timestamp if not a pending message.
     if (!options.pending) {
         const timeSpan = document.createElement('span');
         timeSpan.className = 'timestamp';
@@ -48,6 +52,7 @@ function addBotMessage(text, options = {}) {
     return botMsg;
 }
 
+// Sends a message to the LLM and handles the response, including any required confirmations or errors.
 async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
     addUserMessage(shownMessage);
     responseBox.innerHTML = '<span class="status-thinking">AI bearbetar begäran...</span>';
@@ -59,9 +64,9 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message, ...extraPayload })
         });
-
         const data = await resp.json();
 
+        // If the response indicates that a confirmation is required, prompt the user and handle their decision.
         if (data.requires_confirmation) {
             pendingBotMsg.remove();
             addBotMessage(data.response || 'Åtgärden kräver bekräftelse.');
@@ -71,7 +76,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             if (confirmed) {
                 await sendToLLM(
                     'bekräfta',
-                    `Bekräftar: ${data.proposed_action?.tool || 'destruktiv åtgärd'}`,
+                    `Bekräftar: ${data.proposed_action?.tool || data.proposed_actions?.[0]?.tool || 'destruktiv åtgärd'}`,
                     {
                         confirm: true,
                         confirmation_id: data.confirmation_id
@@ -83,14 +88,28 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             return;
         }
 
+        if (data.error) {
+            pendingBotMsg.remove();
+            addBotMessage(data.error);
+            responseBox.innerHTML = '';
+            return;
+        }
+
+        // If a normal response is received, display it. If tool results are included, show them in the system status area.
         if (data.response) {
             pendingBotMsg.remove();
-            addBotMessage(data.response);
-            responseBox.innerHTML = '';
+            if (data.tool_results && data.tool_results.length > 0) {
+                addBotMessage('Klart! Se Händelse Resultat för ett detaljerat verktygsresultat.');
+                const display = data.tool_results.length === 1 ? data.tool_results[0] : data.tool_results;
+                responseBox.innerHTML = '<pre>' + JSON.stringify(display, null, 2) + '</pre>';
+            } else {
+                addBotMessage(data.response);
+                responseBox.innerHTML = '';
+            }
         } else {
             pendingBotMsg.remove();
             responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            addBotMessage('Fick ett svar utan text. Se systemstatus till vänster för detaljer.');
+            addBotMessage('Se Händelse Resultat till vänster för detaljer.');
         }
     } catch (err) {
         pendingBotMsg.remove();
@@ -99,15 +118,17 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
     }
 }
 
-textarea.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
+// Handles the Enter key in the textarea to submit the form, while allowing Shift+Enter for new lines.
+textarea.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
         document.getElementById('chatForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     }
 });
 
-document.getElementById('chatForm').onsubmit = async function (e) {
-    e.preventDefault();
+// Handles form submission, including special commands for clearing the chat and managing articles, and sends user input to the LLM.
+document.getElementById('chatForm').onsubmit = async function (event) {
+    event.preventDefault();
     const prompt = textarea.value.trim();
     if (!prompt) return;
 
@@ -145,6 +166,7 @@ document.getElementById('chatForm').onsubmit = async function (e) {
     await sendToLLM(prompt, prompt);
 };
 
+// Shows a confirmation modal when the user attempts to remove an article.
 function showConfirmRemoveModal(articleId) {
     const modal = document.getElementById('confirm-remove-modal');
     document.getElementById('confirm-remove-text').textContent =
