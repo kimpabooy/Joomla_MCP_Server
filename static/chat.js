@@ -100,25 +100,26 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             return;
         }
 
-        // Normal flow: always show response text in chat, and show tool/Joomla data in Händelse Resultat.
-        if (data.response || (data.tool_results && data.tool_results.length > 0)) {
+        // Normal flow: keep chat concise. If tool results exist, show details only in Händelse Resultat.
+        const hasToolResults = Array.isArray(data.tool_results) && data.tool_results.length > 0;
+        if (data.response || hasToolResults) {
             pendingBotMsg.remove();
 
-            const responseText = typeof data.response === 'string' && data.response.trim()
-                ? data.response
-                : 'Klart. Joomla-data visas i Händelse Resultat.';
-            addBotMessage(responseText);
-
-            if (Array.isArray(data.tool_results) && data.tool_results.length > 0) {
+            if (hasToolResults) {
+                addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
                 const display = data.tool_results.length === 1 ? data.tool_results[0] : data.tool_results;
                 responseBox.innerHTML = '<pre>' + JSON.stringify(display, null, 2) + '</pre>';
             } else {
+                const responseText = typeof data.response === 'string' && data.response.trim()
+                    ? data.response
+                    : 'Klart!';
+                addBotMessage(responseText);
                 responseBox.innerHTML = '';
             }
         } else {
             pendingBotMsg.remove();
             responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            addBotMessage('Se Händelse Resultat till vänster för detaljer.');
+            addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
         }
     } catch (err) {
         pendingBotMsg.remove();
