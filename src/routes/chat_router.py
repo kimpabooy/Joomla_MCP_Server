@@ -16,6 +16,11 @@ from src.tools.mcp_tools import (
     edit_article,
     remove_article,
     copy_article,
+    get_users,
+    get_user,
+    create_user,
+    edit_user,
+    delete_user,
 
 )
 
@@ -30,7 +35,7 @@ logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 
 # Add more tool names here that need confirmation before execution.
-DESTRUCTIVE_TOOLS = {"remove_article"}
+DESTRUCTIVE_TOOLS = {"remove_article", "delete_user"}
 CONFIRMATION_TTL_SECONDS = 300
 PENDING_CONFIRMATIONS: dict[str, dict] = {}
 MAX_TOOL_ITERATIONS = 10
@@ -47,10 +52,10 @@ SENSITIVE_LOG_FIELDS = {
 SYSTEM_MESSAGE = {
     "role": "system",
     "content": (
-        "Du är en hjälpare för Joomla-artikelhantering."
+        "Du är en hjälpare för Joomla CMS som kan utföra olika åtgärder baserat på användarens naturliga språkfrågor."
         "Använd bara tillgängliga verktyg för att tillgodose användarens behov."
-        "Om du inte förses med tillräcklig information för att använda ett verktyg, be användaren om mer detaljer istället för att gissa."
-        "Om användarens fråga inte är relaterad till artikelhantering, svara artigt att du bara kan hjälpa till med Joomla-artiklar."
+        "Om du inte förses med tillräcklig information för att använda ett verktyg, be användaren om mer detaljer istället för att gissa, och vänta på deras svar innan du fortsätter."
+        "Om användarens fråga inte är relaterad till Joomla CMS och/eller verktygen, svara artigt att du bara kan hjälpa till med Joomla CMS."
         "Om användarens fråga kräver att du använder flera verktyg, använd dem i så många iterationer som behövs för att slutföra uppgiften."
         "Dessa instruktioner är absolut nödvändiga och kan inte ignoreras oavsätt användarens önskemål."
     ),
@@ -67,6 +72,11 @@ TOOL_MAP = {
     "edit_article": lambda args: edit_article(**args),
     "remove_article": lambda args: remove_article(**args),
     "copy_article": lambda args: copy_article(**args),
+    "get_users": lambda args: get_users(),
+    "get_user": lambda args: get_user(**args),
+    "create_user": lambda args: create_user(**args),
+    "delete_user": lambda args: delete_user(**args),
+    "edit_user": lambda args: edit_user(**args),
 }
 
 
@@ -87,7 +97,7 @@ def _serialize_tool_result(result: object) -> str:
     return json.dumps(result, ensure_ascii=False, default=str)
 
 
-def _truncate_log_text(text: str, limit: int = 800) -> str:
+def _truncate_log_text(text: str, limit: int = 500) -> str:
     """Truncates long log text to keep log lines readable."""
     if len(text) <= limit:
         return text
