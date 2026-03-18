@@ -64,7 +64,12 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message, ...extraPayload })
         });
-        const data = await resp.json();
+        let data = await resp.json();
+
+        // Backwards-compatible unwrap in case backend accidentally returns a single-item array.
+        if (Array.isArray(data) && data.length === 1 && typeof data[0] === 'object' && data[0] !== null) {
+            data = data[0];
+        }
 
         // If the response indicates that a confirmation is required, prompt the user and handle their decision.
         if (data.requires_confirmation) {
@@ -95,15 +100,19 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             return;
         }
 
-        // If a normal response is received, display it. If tool results are included, show them in the system status area.
-        if (data.response) {
+        // Normal flow: always show response text in chat, and show tool/Joomla data in Händelse Resultat.
+        if (data.response || (data.tool_results && data.tool_results.length > 0)) {
             pendingBotMsg.remove();
-            if (data.tool_results && data.tool_results.length > 0) {
-                addBotMessage('Klart! Se Händelse Resultat för ett detaljerat verktygsresultat.');
+
+            const responseText = typeof data.response === 'string' && data.response.trim()
+                ? data.response
+                : 'Klart. Joomla-data visas i Händelse Resultat.';
+            addBotMessage(responseText);
+
+            if (Array.isArray(data.tool_results) && data.tool_results.length > 0) {
                 const display = data.tool_results.length === 1 ? data.tool_results[0] : data.tool_results;
                 responseBox.innerHTML = '<pre>' + JSON.stringify(display, null, 2) + '</pre>';
             } else {
-                addBotMessage(data.response);
                 responseBox.innerHTML = '';
             }
         } else {

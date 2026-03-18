@@ -1,27 +1,29 @@
 from dotenv import load_dotenv
-import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from src.config.logging_config import configure_logging
 from src.routes.chat_router import router as chat_router
 from src.tools.mcp_tools import mcp
 import uvicorn
 
-# Konfigurera loggning
-logging.basicConfig(level=logging.INFO)
+# Configure the logging system.
+configure_logging()
 
-# Ladda miljövariabler från .env om den finns
+# Load environment variables from .env if it exists.
 load_dotenv()
 
-# Skapa MCP ASGI-app och hämta dess lifespan
+# Create FastAPI app with MCP's lifespan and include routers
+# Create MCP ASGI app and get its lifespan.
 mcp_app = mcp.http_app()
-
-# Skapa FastAPI app med MCP:s lifespan och inkludera routrar
 app = FastAPI(lifespan=mcp_app.lifespan)
+
+# Mount static files and include the chat router.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(chat_router)
 
-# Montera FastMCP-servern på /mcp (hanterar SSE och streamable HTTP)
+# Mount the MCP server on /mcp (handles SSE and streamable HTTP).
 app.mount("/mcp", mcp_app)
 
+# Run the app with Uvicorn.
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000)
