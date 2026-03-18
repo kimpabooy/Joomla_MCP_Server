@@ -14,7 +14,8 @@ from src.services.joomla_service import (
     get_joomla_user,
     create_joomla_user,
     delete_joomla_user,
-    edit_joomla_user
+    edit_joomla_user,
+    get_unpublished_joomla_articles
 )
 
 """
@@ -86,6 +87,12 @@ def trash(article_id: int) -> dict:
     """Trashes an article based on its ID."""
     result = trash_joomla_article(get_token(), article_id)
     return format_article_data(result)
+
+@mcp.tool()
+def get_unpublished_articles() -> list[dict]:
+    """Fetches all unpublished articles from Joomla."""
+    articles = get_unpublished_joomla_articles(get_token())
+    return [format_article_data(article) for article in articles]
 
 
 @mcp.tool()
