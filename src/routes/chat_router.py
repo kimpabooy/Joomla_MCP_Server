@@ -21,6 +21,7 @@ from src.tools.mcp_tools import (
     create_user,
     edit_user,
     delete_user,
+    get_unpublished_articles
 
 )
 
@@ -77,6 +78,7 @@ TOOL_MAP = {
     "create_user": lambda args: create_user(**args),
     "delete_user": lambda args: delete_user(**args),
     "edit_user": lambda args: edit_user(**args),
+    "get_unpublished_articles": lambda args: get_unpublished_articles()
 }
 
 
