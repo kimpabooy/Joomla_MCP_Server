@@ -211,6 +211,18 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_unpublished_articles",
+            "description": "Hämta alla opublicerade artiklar från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    }
+
 
 ]
 
