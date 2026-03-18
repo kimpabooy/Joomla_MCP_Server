@@ -34,6 +34,19 @@ External MCP client
 
 ---
 
+## Logging
+
+Logging is configured in `src/config/logging_config.py` and initialized from `main.py`.
+
+Key principles:
+
+1. Logs are written with file rotation (`1 MB` per file, `5` backups).
+2. Default log level is `INFO`, while noisy third-party loggers are reduced to `WARNING`.
+3. Chat flow activity and runtime errors are logged for observability and debugging.
+4. Sensitive fields are masked before logging, and exceptions include stack traces.
+
+---
+
 ## Responsibilities (Tools)
 
 Different kind of tool-names appear in multiple places, but each layer has a different responsibility.
@@ -122,6 +135,8 @@ Defined in `src/tools/mcp_tools.py` and mirrored as function-calling schema in `
 │   ├── chat.js
 │   └── style.css
 └── src/
+     ├── config/
+     │   └── logging_config.py
     ├── routes/
     │   ├── chat_router.py
     └── services/
