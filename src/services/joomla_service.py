@@ -108,6 +108,16 @@ def remove_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
     }
 
 
+def get_unpublished_joomla_articles(token: str) -> List[Dict[str, Any]]:
+    """Fetches all unpublished articles from Joomla."""
+    url = f"{JOOMLA_URL}/content/articles?filter[state]=0"
+    headers = _get_headers(token)
+    response = requests.get(url, headers=headers)
+
+    response.raise_for_status()
+    return response.json().get("data", [])
+
+
 def create_joomla_article(token: str, title: str, articletext: str, catid: int = 2) -> Dict[str, Any]:
     """Creates a new article in Joomla with the given title and content."""
     url = f"{JOOMLA_URL}/content/articles"
@@ -157,8 +167,8 @@ def copy_joomla_article(token: str, article_id: int, new_title: str) -> Dict[str
         "attributes", {}).get("articletext", "")
     return create_joomla_article(token, new_title, original_content)
 
-### --- USERS --- ###
 
+### --- USERS --- ###
 
 def get_joomla_users(token: str) -> List[Dict[str, Any]]:
     """Fetches all users from Joomla and returns a list of formatted user data."""
