@@ -246,15 +246,16 @@ def edit_joomla_user(token: str, user_id: int, name: str, username: str, email: 
     return response.json().get("data", {})
 
 # Future functions that could be added:
-### --- BANNERS --- ###
-### --- CONTACTS --- ###
 ### --- CONTENTS --- ###
-### --- LANGUAGES --- ###
 ### --- MENUS --- ###
+### --- TAGS --- ###
+### --- REDIRECTS --- ###
+
+
+# inte prio
 ### --- MESSAGES --- ###
 ### --- MODULES --- ###
 ### --- NEWSFEEDS --- ###
 ### --- PRIVACYS --- ###
-### --- REDIRECTS --- ###
-### --- TAGS --- ###
 ### --- TEMPLATES --- ###
+### --- LANGUAGES --- ###
