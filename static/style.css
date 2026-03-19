@@ -191,6 +191,54 @@ h1 {
     display: block;
 }
 
+/* Markdown-stöd för chatten */
+.msg-text h1,
+.msg-text h2,
+.msg-text h3,
+.msg-text h4,
+.msg-text h5,
+.msg-text h6 {
+    color: #9ed9ff;
+    margin: 10px 0 6px 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.msg-text h1 { font-size: 1.7em; }
+.msg-text h2 { font-size: 1.4em; }
+.msg-text h3 { font-size: 1.15em; }
+.msg-text ul,
+.msg-text ol {
+    margin: 8px 0 8px 22px;
+    padding-left: 18px;
+}
+.msg-text li {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+.msg-text strong {
+    color: #fff;
+    font-weight: bold;
+}
+.msg-text em {
+    color: #b8e0ff;
+    font-style: italic;
+}
+.msg-text code {
+    background: #232e3e;
+    color: #ffe6a0;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.98em;
+}
+.msg-text pre {
+    background: #232e3e;
+    color: #ffe6a0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+    overflow-x: auto;
+}
+
 .timestamp {
     display: block;
     font-size: 0.72rem;
