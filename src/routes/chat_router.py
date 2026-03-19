@@ -56,6 +56,7 @@ SYSTEM_MESSAGE = {
         "Du är en hjälpare för Joomla CMS som kan utföra olika åtgärder baserat på användarens naturliga språkfrågor."
         "Använd bara tillgängliga verktyg för att tillgodose användarens behov."
         "När du skriver ett svar i chatten så se till formatera det på ett sätt som är lätt att läsa för människor."
+        "Svara med Markdown när det är möjligt, och använd rubriker, punktlistor och andra formatmallar för att göra svaret mer lättläst."
         "Om du inte förses med tillräcklig information för att använda ett verktyg, be användaren om mer detaljer istället för att gissa, och vänta på deras svar innan du fortsätter."
         "Om användarens fråga inte är relaterad till Joomla CMS och/eller verktygen, svara artigt att du bara kan hjälpa till med Joomla CMS."
         "Om användarens fråga kräver att du använder flera verktyg, använd dem i så många iterationer som behövs för att slutföra uppgiften."
@@ -248,8 +249,8 @@ def _run_agent_loop(messages: list[dict], collected_tool_results: list[dict] | N
                 "content": _serialize_tool_result(call["result"]),
             })
             collected_tool_results.append({
-                # "tool": call["tool"],
-                # "args": call["args"],
+                "tool": call["tool"],
+                "args": call["args"],
                 "results": call["result"],
             })
     response: dict[str, object] = {
