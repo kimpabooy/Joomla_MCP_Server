@@ -247,9 +247,9 @@ def _run_agent_loop(messages: list[dict], collected_tool_results: list[dict] | N
                 "content": _serialize_tool_result(call["result"]),
             })
             collected_tool_results.append({
-                "tool": call["tool"],
-                "args": call["args"],
-                "result": call["result"],
+                # "tool": call["tool"],
+                # "args": call["args"],
+                "results": call["result"],
             })
     response: dict[str, object] = {
         "response": "Kunde inte slutföra begäran inom tillåtet antal steg."}
