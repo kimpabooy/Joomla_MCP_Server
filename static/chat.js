@@ -37,7 +37,12 @@ function addBotMessage(text, options = {}) {
     }
     const textSpan = document.createElement('span');
     textSpan.className = 'msg-text';
-    textSpan.textContent = text;
+    // Rendera Markdown till HTML med marked.js
+    if (window.marked) {
+        textSpan.innerHTML = window.marked.parse(text);
+    } else {
+        textSpan.textContent = text;
+    }
     botMsg.appendChild(textSpan);
 
     // Add a timestamp if not a pending message.
@@ -100,20 +105,28 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             return;
         }
 
-        // Normal flow: keep chat concise. If tool results exist, show details only in Händelse Resultat.
+        // Visa alltid response-texten i chatten om den finns, även om tool_results finns.
         const hasToolResults = Array.isArray(data.tool_results) && data.tool_results.length > 0;
         if (data.response || hasToolResults) {
             pendingBotMsg.remove();
 
+            // Visa response-texten om den finns
+            const responseText = typeof data.response === 'string' && data.response.trim()
+                ? data.response
+                : null;
+            if (responseText) {
+                addBotMessage(responseText);
+            }
+
+            // Visa verktygsresultat i Händelse Resultat om de finns
             if (hasToolResults) {
-                addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
                 const display = data.tool_results.length === 1 ? data.tool_results[0] : data.tool_results;
                 responseBox.innerHTML = '<pre>' + JSON.stringify(display, null, 2) + '</pre>';
+                // Om det inte fanns någon response-text, visa fallback-meddelande i chatten
+                if (!responseText) {
+                    addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
+                }
             } else {
-                const responseText = typeof data.response === 'string' && data.response.trim()
-                    ? data.response
-                    : 'Klart!';
-                addBotMessage(responseText);
                 responseBox.innerHTML = '';
             }
         } else {
