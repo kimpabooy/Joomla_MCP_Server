@@ -245,7 +245,7 @@ def edit_joomla_user(token: str, user_id: int, name: str, username: str, email: 
             f"Joomla API error ({response.status_code}): {error_detail}")
     return response.json().get("data", {})
 
-
+# Future functions that could be added:
 ### --- BANNERS --- ###
 ### --- CONTACTS --- ###
 ### --- CONTENTS --- ###

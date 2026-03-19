@@ -143,9 +143,10 @@ def get_users() -> list[dict]:
     users = get_joomla_users(get_token())
     return [{
         "id": user.get("id"),
-        "name": user.get("attributes", {}).get("name")}
-        for user in users
-    ]
+        "name": user.get("attributes", {}).get("name"),
+        "username": user.get("attributes", {}).get("username"),
+        "email": user.get("attributes", {}).get("email"),
+    } for user in users]
 
 
 @mcp.tool()
