@@ -10,6 +10,12 @@ from src.services.joomla_service import (
     remove_joomla_article,
     edit_joomla_article,
     copy_joomla_article,
+    get_joomla_users,
+    get_joomla_user,
+    create_joomla_user,
+    delete_joomla_user,
+    edit_joomla_user,
+    get_unpublished_joomla_articles
 )
 
 """
@@ -30,7 +36,7 @@ def get_token() -> str:
 
 
 # Helper function to format article data into a more readable structure
-def format_article_data(article: dict) -> dict:
+def _format_article_data(article: dict) -> dict:
     attributes = article.get("attributes", {})
     return {
         "id": article.get("id"),
@@ -46,39 +52,48 @@ def format_article_data(article: dict) -> dict:
     }
 
 
+#### --- ARTICLES --- ###
+
 @mcp.tool()
 def list_articles() -> list[dict]:
     """Fetches all articles from Joomla and returns a list of formatted article data."""
     articles = get_joomla_articles(get_token())
-    return [format_article_data(article) for article in articles]
+    return [_format_article_data(article) for article in articles]
 
 
 @mcp.tool()
 def get_article(article_id: int) -> dict:
     """Fetches details for a specific article based on its ID."""
     article = get_joomla_article(get_token(), article_id)
-    return format_article_data(article)
+    return _format_article_data(article)
 
 
 @mcp.tool()
 def publish(article_id: int) -> dict:
     """Publishes an article based on its ID."""
     result = publish_joomla_article(get_token(), article_id)
-    return format_article_data(result)
+    return _format_article_data(result)
 
 
 @mcp.tool()
 def unpublish(article_id: int) -> dict:
     """Unpublishes an article based on its ID."""
     result = unpublish_joomla_article(get_token(), article_id)
-    return format_article_data(result)
+    return _format_article_data(result)
 
 
 @mcp.tool()
 def trash(article_id: int) -> dict:
     """Trashes an article based on its ID."""
     result = trash_joomla_article(get_token(), article_id)
-    return format_article_data(result)
+    return _format_article_data(result)
+
+
+@mcp.tool()
+def get_unpublished_articles() -> list[dict]:
+    """Fetches all unpublished articles from Joomla."""
+    articles = get_unpublished_joomla_articles(get_token())
+    return [_format_article_data(article) for article in articles]
 
 
 @mcp.tool()
@@ -86,7 +101,7 @@ def create_article(title: str, content: str) -> dict:
     """Creates a new article with the given title and content."""
     try:
         result = create_joomla_article(get_token(), title, content)
-        return format_article_data(result)
+        return _format_article_data(result)
     except Exception as e:
         return {"error": str(e)}
 
@@ -106,7 +121,7 @@ def edit_article(article_id: int, title: str, content: str) -> dict:
     """Edits an existing article based on its ID with new title and content. Alias updates automatically."""
     try:
         result = edit_joomla_article(get_token(), article_id, title, content)
-        return format_article_data(result)
+        return _format_article_data(result)
     except Exception as e:
         return {"error": str(e)}
 
@@ -116,6 +131,73 @@ def copy_article(article_id: int, new_title: str) -> dict:
     """Creates a copy of an existing article based on its ID. The new article will have the provided title and the same content as the original."""
     try:
         result = copy_joomla_article(get_token(), article_id, new_title)
-        return format_article_data(result)
+        return _format_article_data(result)
+    except Exception as e:
+        return {"error": str(e)}
+
+### --- USERS --- ###
+
+
+@mcp.tool()
+def get_users() -> list[dict]:
+    """Fetches all users from Joomla and returns a list of formatted user data."""
+    users = get_joomla_users(get_token())
+    return [{
+        "id": user.get("id"),
+        "name": user.get("attributes", {}).get("name"),
+        "username": user.get("attributes", {}).get("username"),
+        "email": user.get("attributes", {}).get("email"),
+    } for user in users]
+
+
+@mcp.tool()
+def get_user(user_id: int) -> dict:
+    """Fetches details for a specific user based on their ID."""
+    user = get_joomla_user(get_token(), user_id)
+    return {
+        "id": user.get("id"),
+        "name": user.get("attributes", {}).get("name"),
+        "username": user.get("attributes", {}).get("username"),
+        "email": user.get("attributes", {}).get("email")
+    }
+
+
+@mcp.tool()
+def create_user(name: str, username: str, email: str, password: str) -> dict:
+    """Creates a new user in Joomla with the given details."""
+    try:
+        result = create_joomla_user(
+            get_token(), name, username, email, password)
+        return {
+            "id": result.get("id"),
+            "name": result.get("attributes", {}).get("name"),
+            "username": result.get("attributes", {}).get("username"),
+            "email": result.get("attributes", {}).get("email")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def delete_user(user_id: int) -> dict:
+    """Deletes a user from Joomla based on their ID."""
+    try:
+        result = delete_joomla_user(get_token(), user_id)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def edit_user(user_id: int, name: str, username: str, email: str) -> dict:
+    """Edits an existing user in Joomla based on their ID. Only provided fields will be updated."""
+    try:
+        result = edit_joomla_user(get_token(), user_id, name, username, email)
+        return {
+            "id": result.get("id"),
+            "name": result.get("attributes", {}).get("name"),
+            "username": result.get("attributes", {}).get("username"),
+            "email": result.get("attributes", {}).get("email")
+        }
     except Exception as e:
         return {"error": str(e)}

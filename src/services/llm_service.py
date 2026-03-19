@@ -137,7 +137,92 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
                 "required": ["article_id", "new_title"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_users",
+            "description": "Hämta alla användare från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_user",
+            "description": "Hämta detaljer för en specifik användare baserat på deras ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "integer", "description": "Användarens ID"}
+                },
+                "required": ["user_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_user",
+            "description": "Skapa en ny användare i Joomla med de givna detaljerna",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Användarens namn"},
+                    "username": {"type": "string", "description": "Användarens användarnamn"},
+                    "email": {"type": "string", "description": "Användarens e-postadress"},
+                    "password": {"type": "string", "description": "Användarens lösenord"}
+                },
+                "required": ["name", "username", "email", "password"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_user",
+            "description": "Ta bort en användare från Joomla baserat på deras ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "integer", "description": "Användarens ID"}
+                },
+                "required": ["user_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_user",
+            "description": "Redigera en befintlig användare i Joomla baserat på deras ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "integer", "description": "Användarens ID"},
+                    "name": {"type": "string", "description": "Nytt namn"},
+                    "username": {"type": "string", "description": "Nytt användarnamn"},
+                    "email": {"type": "string", "description": "Ny e-postadress"}
+                },
+                "required": ["user_id", "name", "username", "email"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_unpublished_articles",
+            "description": "Hämta alla opublicerade artiklar från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
     }
+
 
 ]
 

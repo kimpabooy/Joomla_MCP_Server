@@ -21,6 +21,8 @@ def _get_headers(token: str) -> Dict[str, str]:
     }
 
 
+### --- ARTICLES --- ###
+
 def get_joomla_articles(token: str) -> List[Dict[str, Any]]:
     """Fetches all articles from Joomla and returns a list of formatted article data."""
     url = f"{JOOMLA_URL}/content/articles"
@@ -106,6 +108,16 @@ def remove_joomla_article(token: str, article_id: int) -> Dict[str, Any]:
     }
 
 
+def get_unpublished_joomla_articles(token: str) -> List[Dict[str, Any]]:
+    """Fetches all unpublished articles from Joomla."""
+    url = f"{JOOMLA_URL}/content/articles?filter[state]=0"
+    headers = _get_headers(token)
+    response = requests.get(url, headers=headers)
+
+    response.raise_for_status()
+    return response.json().get("data", [])
+
+
 def create_joomla_article(token: str, title: str, articletext: str, catid: int = 2) -> Dict[str, Any]:
     """Creates a new article in Joomla with the given title and content."""
     url = f"{JOOMLA_URL}/content/articles"
@@ -154,3 +166,95 @@ def copy_joomla_article(token: str, article_id: int, new_title: str) -> Dict[str
     original_content = original_article.get(
         "attributes", {}).get("articletext", "")
     return create_joomla_article(token, new_title, original_content)
+
+
+### --- USERS --- ###
+
+def get_joomla_users(token: str) -> List[Dict[str, Any]]:
+    """Fetches all users from Joomla and returns a list of formatted user data."""
+    url = f"{JOOMLA_URL}/users"
+    headers = _get_headers(token)
+    response = requests.get(url, headers=headers)
+
+    response.raise_for_status()
+    return response.json().get("data", [])
+
+
+def get_joomla_user(token: str, user_id: int) -> Dict[str, Any]:
+    """Fetches details for a specific user based on their ID."""
+    url = f"{JOOMLA_URL}/users/{user_id}"
+    headers = _get_headers(token)
+    response = requests.get(url, headers=headers)
+
+    response.raise_for_status()
+    return response.json().get("data", {})
+
+
+def create_joomla_user(token: str, name: str, username: str, email: str, password: str) -> Dict[str, Any]:
+    """Creates a new user in Joomla with the given details."""
+    url = f"{JOOMLA_URL}/users"
+    headers = _get_headers(token)
+    data = {
+        "name": name,
+        "username": username,
+        "email": email,
+        "password": password,
+        "groups": [2]  # Default to Registered group
+    }
+    response = requests.post(url, headers=headers, json=data)
+
+    if not response.ok:
+        error_detail = response.text
+        raise Exception(
+            f"Joomla API error ({response.status_code}): {error_detail}")
+    return response.json().get("data", {})
+
+
+def delete_joomla_user(token: str, user_id: int) -> Dict[str, Any]:
+    """Deletes a user from Joomla based on their ID."""
+    url = f"{JOOMLA_URL}/users/{user_id}"
+    headers = _get_headers(token)
+    response = requests.delete(url, headers=headers)
+
+    if response.status_code == 404:
+        raise Exception(f"User with ID {user_id} not found.")
+
+    if not response.ok:
+        error_detail = response.text
+        raise Exception(
+            f"Joomla API error ({response.status_code}): {error_detail}")
+    return {
+        "message": f"User {user_id} has been deleted.",
+    }
+
+
+def edit_joomla_user(token: str, user_id: int, name: str, username: str, email: str) -> Dict[str, Any]:
+    """Edits an existing user in Joomla based on their ID."""
+    url = f"{JOOMLA_URL}/users/{user_id}"
+    headers = _get_headers(token)
+    data = {
+        "name": name,
+        "username": username,
+        "email": email
+    }
+    response = requests.patch(url, headers=headers, json=data)
+
+    if not response.ok:
+        error_detail = response.text
+        raise Exception(
+            f"Joomla API error ({response.status_code}): {error_detail}")
+    return response.json().get("data", {})
+
+# Future functions that could be added:
+### --- BANNERS --- ###
+### --- CONTACTS --- ###
+### --- CONTENTS --- ###
+### --- LANGUAGES --- ###
+### --- MENUS --- ###
+### --- MESSAGES --- ###
+### --- MODULES --- ###
+### --- NEWSFEEDS --- ###
+### --- PRIVACYS --- ###
+### --- REDIRECTS --- ###
+### --- TAGS --- ###
+### --- TEMPLATES --- ###
