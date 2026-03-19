@@ -36,7 +36,7 @@ def get_token() -> str:
 
 
 # Helper function to format article data into a more readable structure
-def format_article_data(article: dict) -> dict:
+def _format_article_data(article: dict) -> dict:
     attributes = article.get("attributes", {})
     return {
         "id": article.get("id"),
@@ -58,41 +58,42 @@ def format_article_data(article: dict) -> dict:
 def list_articles() -> list[dict]:
     """Fetches all articles from Joomla and returns a list of formatted article data."""
     articles = get_joomla_articles(get_token())
-    return [format_article_data(article) for article in articles]
+    return [_format_article_data(article) for article in articles]
 
 
 @mcp.tool()
 def get_article(article_id: int) -> dict:
     """Fetches details for a specific article based on its ID."""
     article = get_joomla_article(get_token(), article_id)
-    return format_article_data(article)
+    return _format_article_data(article)
 
 
 @mcp.tool()
 def publish(article_id: int) -> dict:
     """Publishes an article based on its ID."""
     result = publish_joomla_article(get_token(), article_id)
-    return format_article_data(result)
+    return _format_article_data(result)
 
 
 @mcp.tool()
 def unpublish(article_id: int) -> dict:
     """Unpublishes an article based on its ID."""
     result = unpublish_joomla_article(get_token(), article_id)
-    return format_article_data(result)
+    return _format_article_data(result)
 
 
 @mcp.tool()
 def trash(article_id: int) -> dict:
     """Trashes an article based on its ID."""
     result = trash_joomla_article(get_token(), article_id)
-    return format_article_data(result)
+    return _format_article_data(result)
+
 
 @mcp.tool()
 def get_unpublished_articles() -> list[dict]:
     """Fetches all unpublished articles from Joomla."""
     articles = get_unpublished_joomla_articles(get_token())
-    return [format_article_data(article) for article in articles]
+    return [_format_article_data(article) for article in articles]
 
 
 @mcp.tool()
@@ -100,7 +101,7 @@ def create_article(title: str, content: str) -> dict:
     """Creates a new article with the given title and content."""
     try:
         result = create_joomla_article(get_token(), title, content)
-        return format_article_data(result)
+        return _format_article_data(result)
     except Exception as e:
         return {"error": str(e)}
 
@@ -120,7 +121,7 @@ def edit_article(article_id: int, title: str, content: str) -> dict:
     """Edits an existing article based on its ID with new title and content. Alias updates automatically."""
     try:
         result = edit_joomla_article(get_token(), article_id, title, content)
-        return format_article_data(result)
+        return _format_article_data(result)
     except Exception as e:
         return {"error": str(e)}
 
@@ -130,7 +131,7 @@ def copy_article(article_id: int, new_title: str) -> dict:
     """Creates a copy of an existing article based on its ID. The new article will have the provided title and the same content as the original."""
     try:
         result = copy_joomla_article(get_token(), article_id, new_title)
-        return format_article_data(result)
+        return _format_article_data(result)
     except Exception as e:
         return {"error": str(e)}
 
