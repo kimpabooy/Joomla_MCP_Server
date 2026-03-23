@@ -14,7 +14,7 @@ from src.tools.mcp_tools import (
     trash_article,
     create_article,
     edit_article,
-    remove_article,
+    delete_article,
     copy_article,
     get_unpublished_articles,
 
@@ -61,8 +61,8 @@ logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 
 # Add more tool names here that need confirmation before execution.
-DESTRUCTIVE_TOOLS = {"remove_article",
-                     "delete_user", "delete_menu", "delete_menu_item, delete_tag", "delete_tag_item"}
+DESTRUCTIVE_TOOLS = {"delete_article",
+                     "delete_user", "delete_menu", "delete_menu_item", "delete_tag", "delete_tag_item"}
 CONFIRMATION_TTL_SECONDS = 300
 PENDING_CONFIRMATIONS: dict[str, dict] = {}
 MAX_TOOL_ITERATIONS = 10
@@ -97,7 +97,7 @@ TOOL_MAP = {
     "get_article": lambda args: get_article(**args),
     "create_article": lambda args: create_article(**args),
     "edit_article": lambda args: edit_article(**args),
-    "remove_article": lambda args: remove_article(**args),
+    "delete_article": lambda args: delete_article(**args),
     "publish_article": lambda args: publish_article(**args),
     "unpublish_article": lambda args: unpublish_article(**args),
     "trash_article": lambda args: trash_article(**args),

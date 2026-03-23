@@ -112,7 +112,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "remove_article",
+            "name": "delete_article",
             "description": "Ta bort en artikel permanent baserat på ID",
             "parameters": {
                 "type": "object",

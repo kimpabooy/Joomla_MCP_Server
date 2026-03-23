@@ -7,7 +7,7 @@ from src.services.joomla_service import (
     publish_joomla_article,
     unpublish_joomla_article,
     trash_joomla_article,
-    remove_joomla_article,
+    delete_joomla_article,
     edit_joomla_article,
 
     copy_joomla_article,
@@ -133,10 +133,10 @@ def create_article(title: str, content: str) -> dict:
 
 
 @mcp.tool()
-def remove_article(article_id: int) -> dict:
+def delete_article(article_id: int) -> dict:
     """Permanently deletes an article based on its ID."""
     try:
-        result = remove_joomla_article(get_token(), article_id)
+        result = delete_joomla_article(get_token(), article_id)
         return result
     except Exception as e:
         return {"error": str(e)}
@@ -447,7 +447,7 @@ def get_tag_item(tag_id: int, item_id: int) -> dict:
 def create_tag_item(tag_id: int, type: str, item_id: int) -> dict:
     """Creates a new tag item under a specific tag in Joomla."""
     try:
-        result = create_joomla_tag_item(get_token(), tag_id, type, item_id)
+        result = create_joomla_tag_item(get_token(), tag_id, item_id)
         return {
             "id": result.get("id"),
             "type": result.get("attributes", {}).get("type"),
@@ -462,7 +462,7 @@ def edit_tag_item(tag_id: int, item_id: int, type: str, new_item_id: int) -> dic
     """Edits an existing tag item under a specific tag in Joomla."""
     try:
         result = edit_joomla_tag_item(
-            get_token(), tag_id, item_id, type, new_item_id)
+            get_token(), tag_id, item_id, new_item_id)
         return {
             "id": result.get("id"),
             "type": result.get("attributes", {}).get("type"),
