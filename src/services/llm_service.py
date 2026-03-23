@@ -514,6 +514,76 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_redirects",
+            "description": "Hämta alla omdirigeringar från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_redirect",
+            "description": "Hämta detaljer för en specifik omdirigering baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "redirect_id": {"type": "integer", "description": "Omdirigeringens ID"}
+                },
+                "required": ["redirect_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_redirect",
+            "description": "Skapa en ny omdirigering i Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "source": {"type": "string", "description": "Källadressen för omdirigeringen"},
+                    "destination": {"type": "string", "description": "Måladressen för omdirigeringen"}
+                },
+                "required": ["source", "destination"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_redirect",
+            "description": "Redigera en befintlig omdirigering i Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "redirect_id": {"type": "integer", "description": "Omdirigeringens ID"},
+                    "source": {"type": "string", "description": "Källadressen för omdirigeringen"},
+                    "destination": {"type": "string", "description": "Måladressen för omdirigeringen"}
+                },
+                "required": ["redirect_id", "source", "destination"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_redirect",
+            "description": "Ta bort en omdirigering från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "redirect_id": {"type": "integer", "description": "Omdirigeringens ID"}
+                },
+                "required": ["redirect_id"]
+            }
+        }
+    },
 
 ]
 
