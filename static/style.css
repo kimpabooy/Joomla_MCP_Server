@@ -44,7 +44,7 @@ h1 {
 
 #main-flex {
     display: grid;
-    grid-template-columns: 0.9fr 1.5fr 0.9fr;
+    grid-template-columns: 0.9fr 2fr 0.9fr;
     gap: 18px;
     align-items: start;
 }
