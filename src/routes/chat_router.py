@@ -7,21 +7,34 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from src.services.llm_service import ask_llm
 from src.tools.mcp_tools import (
-    list_articles,
+    get_articles,
     get_article,
-    publish,
-    unpublish,
-    trash,
+    publish_article,
+    unpublish_article,
+    trash_article,
     create_article,
     edit_article,
     remove_article,
     copy_article,
+    get_unpublished_articles,
+
     get_users,
     get_user,
     create_user,
     edit_user,
     delete_user,
-    get_unpublished_articles
+
+    get_menus,
+    get_menu,
+    create_menu,
+    edit_menu,
+    delete_menu,
+
+    get_menu_items,
+    get_menu_item,
+    create_menu_item,
+    edit_menu_item,
+    delete_menu_item,
 
 )
 
@@ -36,7 +49,8 @@ logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 
 # Add more tool names here that need confirmation before execution.
-DESTRUCTIVE_TOOLS = {"remove_article", "delete_user"}
+DESTRUCTIVE_TOOLS = {"remove_article",
+                     "delete_user", "delete_menu", "delete_menu_item"}
 CONFIRMATION_TTL_SECONDS = 300
 PENDING_CONFIRMATIONS: dict[str, dict] = {}
 MAX_TOOL_ITERATIONS = 10
@@ -67,21 +81,36 @@ SYSTEM_MESSAGE = {
 
 # Maps tool names to their corresponding function.
 TOOL_MAP = {
-    "list_articles": lambda args: list_articles(),
+    "get_articles": lambda args: get_articles(),
     "get_article": lambda args: get_article(**args),
-    "publish": lambda args: publish(**args),
-    "unpublish": lambda args: unpublish(**args),
-    "trash": lambda args: trash(**args),
     "create_article": lambda args: create_article(**args),
     "edit_article": lambda args: edit_article(**args),
     "remove_article": lambda args: remove_article(**args),
+    "publish_article": lambda args: publish_article(**args),
+    "unpublish_article": lambda args: unpublish_article(**args),
+    "trash_article": lambda args: trash_article(**args),
+
     "copy_article": lambda args: copy_article(**args),
+    "get_unpublished_articles": lambda args: get_unpublished_articles(),
+
     "get_users": lambda args: get_users(),
     "get_user": lambda args: get_user(**args),
     "create_user": lambda args: create_user(**args),
-    "delete_user": lambda args: delete_user(**args),
     "edit_user": lambda args: edit_user(**args),
-    "get_unpublished_articles": lambda args: get_unpublished_articles()
+    "delete_user": lambda args: delete_user(**args),
+
+    "get_menus": lambda args: get_menus(),
+    "get_menu": lambda args: get_menu(**args),
+    "create_menu": lambda args: create_menu(**args),
+    "edit_menu": lambda args: edit_menu(**args),
+    "delete_menu": lambda args: delete_menu(**args),
+
+    "get_menu_items": lambda args: get_menu_items(**args),
+    "get_menu_item": lambda args: get_menu_item(**args),
+    "create_menu_item": lambda args: create_menu_item(**args),
+    "edit_menu_item": lambda args: edit_menu_item(**args),
+    "delete_menu_item": lambda args: delete_menu_item(**args),
+
 }
 
 
