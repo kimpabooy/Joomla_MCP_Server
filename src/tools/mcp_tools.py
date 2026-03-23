@@ -1,21 +1,53 @@
 from fastmcp import FastMCP
 from os import getenv
 from src.services.joomla_service import (
-    create_joomla_article,
     get_joomla_articles,
     get_joomla_article,
+    create_joomla_article,
     publish_joomla_article,
     unpublish_joomla_article,
     trash_joomla_article,
-    remove_joomla_article,
+    delete_joomla_article,
     edit_joomla_article,
+
     copy_joomla_article,
+    get_unpublished_joomla_articles,
+
     get_joomla_users,
     get_joomla_user,
     create_joomla_user,
     delete_joomla_user,
     edit_joomla_user,
-    get_unpublished_joomla_articles
+
+    get_joomla_menus,
+    get_joomla_menu,
+    create_joomla_menu,
+    edit_joomla_menu,
+    delete_joomla_menu,
+
+    get_joomla_menu_items,
+    get_joomla_menu_item,
+    create_joomla_menu_item,
+    edit_joomla_menu_item,
+    delete_joomla_menu_item,
+
+    get_joomla_tags,
+    get_joomla_tag,
+    create_joomla_tag,
+    edit_joomla_tag,
+    delete_joomla_tag,
+
+    get_joomla_tag_items,
+    get_joomla_tag_item,
+    create_joomla_tag_item,
+    edit_joomla_tag_item,
+    delete_joomla_tag_item,
+
+    get_joomla_redirects,
+    get_joomla_redirect,
+    create_joomla_redirect,
+    edit_joomla_redirect,
+    delete_joomla_redirect
 )
 
 """
@@ -55,7 +87,7 @@ def _format_article_data(article: dict) -> dict:
 #### --- ARTICLES --- ###
 
 @mcp.tool()
-def list_articles() -> list[dict]:
+def get_articles() -> list[dict]:
     """Fetches all articles from Joomla and returns a list of formatted article data."""
     articles = get_joomla_articles(get_token())
     return [_format_article_data(article) for article in articles]
@@ -69,21 +101,21 @@ def get_article(article_id: int) -> dict:
 
 
 @mcp.tool()
-def publish(article_id: int) -> dict:
+def publish_article(article_id: int) -> dict:
     """Publishes an article based on its ID."""
     result = publish_joomla_article(get_token(), article_id)
     return _format_article_data(result)
 
 
 @mcp.tool()
-def unpublish(article_id: int) -> dict:
+def unpublish_article(article_id: int) -> dict:
     """Unpublishes an article based on its ID."""
     result = unpublish_joomla_article(get_token(), article_id)
     return _format_article_data(result)
 
 
 @mcp.tool()
-def trash(article_id: int) -> dict:
+def trash_article(article_id: int) -> dict:
     """Trashes an article based on its ID."""
     result = trash_joomla_article(get_token(), article_id)
     return _format_article_data(result)
@@ -107,10 +139,10 @@ def create_article(title: str, content: str) -> dict:
 
 
 @mcp.tool()
-def remove_article(article_id: int) -> dict:
+def delete_article(article_id: int) -> dict:
     """Permanently deletes an article based on its ID."""
     try:
-        result = remove_joomla_article(get_token(), article_id)
+        result = delete_joomla_article(get_token(), article_id)
         return result
     except Exception as e:
         return {"error": str(e)}
@@ -199,5 +231,321 @@ def edit_user(user_id: int, name: str, username: str, email: str) -> dict:
             "username": result.get("attributes", {}).get("username"),
             "email": result.get("attributes", {}).get("email")
         }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+### --- MENUS --- ###
+
+@mcp.tool()
+def get_menus() -> list[dict]:
+    """Fetches all menus from Joomla and returns a list of formatted menu data."""
+    menus = get_joomla_menus(get_token())
+    return [{
+        "id": menu.get("id"),
+        "title": menu.get("attributes", {}).get("title"),
+        "alias": menu.get("attributes", {}).get("alias")
+    } for menu in menus]
+
+
+@mcp.tool()
+def get_menu(menu_id: int) -> dict:
+    """Fetches details for a specific menu based on its ID."""
+    menu = get_joomla_menu(get_token(), menu_id)
+    return {
+        "id": menu.get("id"),
+        "title": menu.get("attributes", {}).get("title"),
+        "alias": menu.get("attributes", {}).get("alias")
+    }
+
+
+@mcp.tool()
+def create_menu(title: str, alias: str) -> dict:
+    """Creates a new menu in Joomla with the given title and alias."""
+    try:
+        result = create_joomla_menu(get_token(), title, alias)
+        return {
+            "id": result.get("id"),
+            "title": result.get("attributes", {}).get("title"),
+            "alias": result.get("attributes", {}).get("alias")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def edit_menu(menu_id: int, title: str, alias: str) -> dict:
+    """Edits an existing menu in Joomla based on its ID with new title and alias."""
+    try:
+        result = edit_joomla_menu(get_token(), menu_id, title, alias)
+        return {
+            "id": result.get("id"),
+            "title": result.get("attributes", {}).get("title"),
+            "alias": result.get("attributes", {}).get("alias")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def delete_menu(menu_id: int) -> dict:
+    """Deletes a menu from Joomla based on its ID."""
+    try:
+        result = delete_joomla_menu(get_token(), menu_id)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+
+### --- MENU ITEMS --- ###
+
+@mcp.tool()
+def get_menu_items(menu_id: int) -> list[dict]:
+    """Fetches all menu items for a specific menu from Joomla and returns a list of formatted menu item data."""
+    items = get_joomla_menu_items(get_token(), menu_id)
+    return [{
+        "id": item.get("id"),
+        "title": item.get("attributes", {}).get("title"),
+        "alias": item.get("attributes", {}).get("alias"),
+        "link": item.get("attributes", {}).get("link")
+    } for item in items]
+
+
+@mcp.tool()
+def get_menu_item(menu_id: int, item_id: int) -> dict:
+    """Fetches details for a specific menu item based on its ID and the menu it belongs to."""
+    item = get_joomla_menu_item(get_token(), menu_id, item_id)
+    return {
+        "id": item.get("id"),
+        "title": item.get("attributes", {}).get("title"),
+        "alias": item.get("attributes", {}).get("alias"),
+        "link": item.get("attributes", {}).get("link")
+    }
+
+
+@mcp.tool()
+def create_menu_item(menu_id: int, title: str, alias: str, link: str) -> dict:
+    """Creates a new menu item under a specific menu in Joomla."""
+    try:
+        result = create_joomla_menu_item(
+            get_token(), menu_id, title, alias, link)
+        return {
+            "id": result.get("id"),
+            "title": result.get("attributes", {}).get("title"),
+            "alias": result.get("attributes", {}).get("alias"),
+            "link": result.get("attributes", {}).get("link")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def edit_menu_item(menu_id: int, item_id: int, title: str, alias: str, link: str) -> dict:
+    """Edits an existing menu item under a specific menu in Joomla."""
+    try:
+        result = edit_joomla_menu_item(
+            get_token(), menu_id, item_id, title, alias, link)
+        return {
+            "id": result.get("id"),
+            "title": result.get("attributes", {}).get("title"),
+            "alias": result.get("attributes", {}).get("alias"),
+            "link": result.get("attributes", {}).get("link")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def delete_menu_item(menu_id: int, item_id: int) -> dict:
+    """Deletes a menu item under a specific menu in Joomla."""
+    try:
+        result = delete_joomla_menu_item(get_token(), menu_id, item_id)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+### --- TAGS --- ###
+
+
+@mcp.tool()
+def get_tags() -> list[dict]:
+    """Fetches all tags from Joomla and returns a list of formatted tag data."""
+    tags = get_joomla_tags(get_token())
+    return [{
+        "id": tag.get("id"),
+        "title": tag.get("attributes", {}).get("title"),
+        "alias": tag.get("attributes", {}).get("alias")
+    } for tag in tags]
+
+
+@mcp.tool()
+def get_tag(tag_id: int) -> dict:
+    """Fetches details for a specific tag based on its ID."""
+    tag = get_joomla_tag(get_token(), tag_id)
+    return {
+        "id": tag.get("id"),
+        "title": tag.get("attributes", {}).get("title"),
+        "alias": tag.get("attributes", {}).get("alias")
+    }
+
+
+@mcp.tool()
+def create_tag(title: str, alias: str) -> dict:
+    """Creates a new tag in Joomla with the given title and alias."""
+    try:
+        result = create_joomla_tag(get_token(), title, alias)
+        return {
+            "id": result.get("id"),
+            "title": result.get("attributes", {}).get("title"),
+            "alias": result.get("attributes", {}).get("alias")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def edit_tag(tag_id: int, title: str, alias: str) -> dict:
+    """Edits an existing tag in Joomla based on its ID with new title and alias."""
+    try:
+        result = edit_joomla_tag(get_token(), tag_id, title, alias)
+        return {
+            "id": result.get("id"),
+            "title": result.get("attributes", {}).get("title"),
+            "alias": result.get("attributes", {}).get("alias")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def delete_tag(tag_id: int) -> dict:
+    """Deletes a tag from Joomla based on its ID."""
+    try:
+        result = delete_joomla_tag(get_token(), tag_id)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def get_tag_items(tag_id: int) -> list[dict]:
+    """Fetches all items associated with a specific tag from Joomla and returns a list of formatted tag item data."""
+    items = get_joomla_tag_items(get_token(), tag_id)
+    return [{
+        "id": item.get("id"),
+        "type": item.get("attributes", {}).get("type"),
+        "item_id": item.get("attributes", {}).get("item_id")
+    } for item in items]
+
+
+@mcp.tool()
+def get_tag_item(tag_id: int, item_id: int) -> dict:
+    """Fetches details for a specific tag item based on its ID and the tag it belongs to."""
+    item = get_joomla_tag_item(get_token(), tag_id, item_id)
+    return {
+        "id": item.get("id"),
+        "type": item.get("attributes", {}).get("type"),
+        "item_id": item.get("attributes", {}).get("item_id")
+    }
+
+
+@mcp.tool()
+def create_tag_item(tag_id: int, type: str, item_id: int) -> dict:
+    """Creates a new tag item under a specific tag in Joomla."""
+    try:
+        result = create_joomla_tag_item(get_token(), tag_id, item_id)
+        return {
+            "id": result.get("id"),
+            "type": result.get("attributes", {}).get("type"),
+            "item_id": result.get("attributes", {}).get("item_id")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def edit_tag_item(tag_id: int, item_id: int, type: str, new_item_id: int) -> dict:
+    """Edits an existing tag item under a specific tag in Joomla."""
+    try:
+        result = edit_joomla_tag_item(
+            get_token(), tag_id, item_id, new_item_id)
+        return {
+            "id": result.get("id"),
+            "type": result.get("attributes", {}).get("type"),
+            "item_id": result.get("attributes", {}).get("item_id")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def delete_tag_item(tag_id: int, item_id: int) -> dict:
+    """Deletes a tag item under a specific tag in Joomla."""
+    try:
+        result = delete_joomla_tag_item(get_token(), tag_id, item_id)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+### --- REDIRECTS --- ###
+
+
+@mcp.tool()
+def get_redirects() -> list[dict]:
+    """Fetches all redirects from Joomla and returns a list of formatted redirect data."""
+    redirects = get_joomla_redirects(get_token())
+    return [{
+        "id": redirect.get("id"),
+        "source": redirect.get("attributes", {}).get("source"),
+        "destination": redirect.get("attributes", {}).get("destination")
+    } for redirect in redirects]
+
+
+@mcp.tool()
+def get_redirect(redirect_id: int) -> dict:
+    """Fetches details for a specific redirect based on its ID."""
+    redirect = get_joomla_redirect(get_token(), redirect_id)
+    return {
+        "id": redirect.get("id"),
+        "source": redirect.get("attributes", {}).get("source"),
+        "destination": redirect.get("attributes", {}).get("destination")
+    }
+
+
+@mcp.tool()
+def create_redirect(source: str, destination: str) -> dict:
+    """Creates a new redirect in Joomla with the given source and destination."""
+    try:
+        result = create_joomla_redirect(get_token(), source, destination)
+        return {
+            "id": result.get("id"),
+            "source": result.get("attributes", {}).get("source"),
+            "destination": result.get("attributes", {}).get("destination")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def edit_redirect(redirect_id: int, source: str, destination: str) -> dict:
+    """Edits an existing redirect in Joomla based on its ID with new source and destination."""
+    try:
+        result = edit_joomla_redirect(
+            get_token(), redirect_id, source, destination)
+        return {
+            "id": result.get("id"),
+            "source": result.get("attributes", {}).get("source"),
+            "destination": result.get("attributes", {}).get("destination")
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def delete_redirect(redirect_id: int) -> dict:
+    """Deletes a redirect in Joomla based on its ID."""
+    try:
+        result = delete_joomla_redirect(get_token(), redirect_id)
+        return result
     except Exception as e:
         return {"error": str(e)}
