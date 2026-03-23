@@ -554,6 +554,7 @@ def get_joomla_redirects(token: str) -> List[Dict[str, Any]]:
     response.raise_for_status()
     return response.json().get("data", [])
 
+
 def get_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
     """Fetches details for a specific redirect based on its ID."""
     url = f"{JOOMLA_URL}/redirects/{redirect_id}"
@@ -562,6 +563,7 @@ def get_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
 
     response.raise_for_status()
     return response.json().get("data", {})
+
 
 def create_joomla_redirect(token: str, source: str, destination: str) -> Dict[str, Any]:
     """Creates a new redirect in Joomla with the given source and destination URLs."""
@@ -580,6 +582,7 @@ def create_joomla_redirect(token: str, source: str, destination: str) -> Dict[st
             f"Joomla API error ({response.status_code}): {error_detail}")
     return response.json().get("data", {})
 
+
 def edit_joomla_redirect(token: str, redirect_id: int, source: str, destination: str) -> Dict[str, Any]:
     """Edits an existing redirect in Joomla based on its ID."""
     url = f"{JOOMLA_URL}/redirects/{redirect_id}"
@@ -597,6 +600,7 @@ def edit_joomla_redirect(token: str, redirect_id: int, source: str, destination:
             f"Joomla API error ({response.status_code}): {error_detail}")
     return response.json().get("data", {})
 
+
 def delete_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
     """Deletes a redirect from Joomla based on its ID."""
     url = f"{JOOMLA_URL}/redirects/{redirect_id}"
@@ -613,9 +617,6 @@ def delete_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
     return {
         "message": f"Redirect {redirect_id} has been deleted.",
     }
-
-
-
 
 
 # Future functions that could be added:
