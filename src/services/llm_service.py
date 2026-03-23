@@ -221,9 +221,156 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
                 "properties": {}
             }
         }
-    }
+    },
 
-
+    
+    {
+        "type": "function",
+        "function": {
+            "name": "get_menus",
+            "description": "Hämta alla menyer från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_menu",
+            "description": "Hämta detaljer för en specifik meny baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"}
+                },
+                "required": ["menu_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_menu",
+            "description": "Skapa en ny meny i Joomla med den givna titeln",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Menyns titel"}
+                },
+                "required": ["title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_menu",
+            "description": "Redigera en befintlig meny i Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"},
+                    "title": {"type": "string", "description": "Ny menytitel"}
+                },
+                "required": ["menu_id", "title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+                "name": "delete_menu",
+                "description": "Ta bort en meny från Joomla baserat på dess ID",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "menu_id": {"type": "integer", "description": "Menyns ID"}
+                    },
+                    "required": ["menu_id"]
+                }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_menu_items",
+            "description": "Hämta alla menyalternativ för en specifik meny baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"}
+                },
+                "required": ["menu_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_menu_item",
+            "description": "Hämta detaljer för ett specifikt menyalternativ baserat på dess ID och den meny det tillhör",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"},
+                    "item_id": {"type": "integer", "description": "Menyalternativets ID"}
+                },
+                "required": ["menu_id", "item_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_menu_item",
+            "description": "Skapa ett nytt menyalternativ under en specifik meny i Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"},
+                    "title": {"type": "string", "description": "Menyalternativets titel"},
+                    "alias": {"type": "string", "description": "Menyalternativets alias"},
+                    "link": {"type": "string", "description": "URL-länken för menyalternativet"}
+                },
+                "required": ["menu_id", "title", "alias", "link"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_menu_item",
+            "description": "Redigera ett befintligt menyalternativ i Joomla baserat på dess ID och den meny det tillhör",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"},
+                    "item_id": {"type": "integer", "description": "Menyalternativets ID"},
+                    "title": {"type": "string", "description": "Ny titel för menyalternativet"},
+                    "alias": {"type": "string", "description": "Nytt alias för menyalternativet"},
+                    "link": {"type": "string", "description": "Ny URL-länk för menyalternativet"}
+                },
+                "required": ["menu_id", "item_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_menu_item",
+            "description": "Ta bort ett menyalternativ från Joomla baserat på dess ID och den meny det tillhör",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {"type": "integer", "description": "Menyns ID"},
+                    "item_id": {"type": "integer", "description": "Menyalternativets ID"}
+                },
+                "required": ["menu_id", "item_id"]
+            }
+        }
+    },
 ]
 
 
