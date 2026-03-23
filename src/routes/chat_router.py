@@ -48,6 +48,12 @@ from src.tools.mcp_tools import (
     edit_tag_item,
     delete_tag_item,
 
+    get_redirects,
+    get_redirect,
+    create_redirect,
+    edit_redirect,
+    delete_redirect,
+
 )
 
 """
@@ -62,7 +68,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Add more tool names here that need confirmation before execution.
 DESTRUCTIVE_TOOLS = {"delete_article",
-                     "delete_user", "delete_menu", "delete_menu_item", "delete_tag", "delete_tag_item"}
+                     "delete_user", "delete_menu", "delete_menu_item", "delete_tag", "delete_tag_item", "delete_redirect"}
 CONFIRMATION_TTL_SECONDS = 300
 PENDING_CONFIRMATIONS: dict[str, dict] = {}
 MAX_TOOL_ITERATIONS = 10
@@ -135,6 +141,11 @@ TOOL_MAP = {
     "edit_tag_item": lambda args: edit_tag_item(**args),
     "delete_tag_item": lambda args: delete_tag_item(**args),
 
+    "get_redirects": lambda args: get_redirects(),
+    "get_redirect": lambda args: get_redirect(**args),
+    "create_redirect": lambda args: create_redirect(**args),
+    "edit_redirect": lambda args: edit_redirect(**args),
+    "delete_redirect": lambda args: delete_redirect(**args),
 
 }
 
