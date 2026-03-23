@@ -36,6 +36,18 @@ from src.tools.mcp_tools import (
     edit_menu_item,
     delete_menu_item,
 
+    get_tags,
+    get_tag,
+    create_tag,
+    edit_tag,
+    delete_tag,
+
+    get_tag_items,
+    get_tag_item,
+    create_tag_item,
+    edit_tag_item,
+    delete_tag_item,
+
 )
 
 """
@@ -50,7 +62,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Add more tool names here that need confirmation before execution.
 DESTRUCTIVE_TOOLS = {"remove_article",
-                     "delete_user", "delete_menu", "delete_menu_item"}
+                     "delete_user", "delete_menu", "delete_menu_item, delete_tag", "delete_tag_item"}
 CONFIRMATION_TTL_SECONDS = 300
 PENDING_CONFIRMATIONS: dict[str, dict] = {}
 MAX_TOOL_ITERATIONS = 10
@@ -110,6 +122,19 @@ TOOL_MAP = {
     "create_menu_item": lambda args: create_menu_item(**args),
     "edit_menu_item": lambda args: edit_menu_item(**args),
     "delete_menu_item": lambda args: delete_menu_item(**args),
+
+    "get_tags": lambda args: get_tags(),
+    "get_tag": lambda args: get_tag(**args),
+    "create_tag": lambda args: create_tag(**args),
+    "edit_tag": lambda args: edit_tag(**args),
+    "delete_tag": lambda args: delete_tag(**args),
+
+    "get_tag_items": lambda args: get_tag_items(**args),
+    "get_tag_item": lambda args: get_tag_item(**args),
+    "create_tag_item": lambda args: create_tag_item(**args),
+    "edit_tag_item": lambda args: edit_tag_item(**args),
+    "delete_tag_item": lambda args: delete_tag_item(**args),
+
 
 }
 
