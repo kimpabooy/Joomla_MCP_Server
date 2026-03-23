@@ -223,7 +223,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
         }
     },
 
-    
+
     {
         "type": "function",
         "function": {
@@ -371,6 +371,150 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_tags",
+            "description": "Hämta alla taggar från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_tag",
+            "description": "Hämta detaljer för en specifik tagg baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"}
+                },
+                "required": ["tag_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_tag",
+            "description": "Skapa en ny tagg i Joomla med den givna titeln",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Taggens titel"}
+                },
+                "required": ["title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_tag",
+            "description": "Redigera en befintlig tagg i Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"},
+                    "title": {"type": "string", "description": "Ny titel för taggen"}
+                },
+                "required": ["tag_id", "title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_tag",
+            "description": "Ta bort en tagg från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"}
+                },
+                "required": ["tag_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_tag_items",
+            "description": "Hämta alla artiklar som är taggade med en specifik tagg baserat på taggens ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"}
+                },
+                "required": ["tag_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_tag_item",
+            "description": "Hämta detaljer för en specifik artikel som är taggad med en specifik tagg baserat på både taggens ID och artikelns ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"},
+                    "item_id": {"type": "integer", "description": "Artiklens ID"}
+                },
+                "required": ["tag_id", "item_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_tag_item",
+            "description": "Tagga en artikel med en specifik tagg baserat på både taggens ID och artikelns ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"},
+                    "item_id": {"type": "integer", "description": "Artiklens ID"}
+                },
+                "required": ["tag_id", "item_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_tag_item",
+            "description": "Redigera en taggning av en artikel med en specifik tagg baserat på både taggens ID och artikelns ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"},
+                    "item_id": {"type": "integer", "description": "Artiklens ID"}
+                },
+                "required": ["tag_id", "item_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_tag_item",
+            "description": "Ta bort en taggning av en artikel med en specifik tagg baserat på både taggens ID och artikelns ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tag_id": {"type": "integer", "description": "Taggens ID"},
+                    "item_id": {"type": "integer", "description": "Artiklens ID"}
+                },
+                "required": ["tag_id", "item_id"]
+            }
+        }
+    },
+
 ]
 
 
