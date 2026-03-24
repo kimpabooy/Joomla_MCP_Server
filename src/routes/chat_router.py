@@ -1,60 +1,14 @@
-import logging
-import json
-import time
+import logging, json, time
+import src.tools.article_tools as article_tools
+import src.tools.user_tools as user_tools
+import src.tools.menu_tools as menu_tools
+import src.tools.tag_tools as tag_tools
+import src.tools.redirect_tools as redirect_tools
 from datetime import datetime
 from uuid import uuid4
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from src.services.llm_service import ask_llm
-from src.tools.mcp_tools import (
-    get_articles,
-    get_article,
-    publish_article,
-    unpublish_article,
-    trash_article,
-    create_article,
-    edit_article,
-    delete_article,
-    copy_article,
-    get_unpublished_articles,
-
-    get_users,
-    get_user,
-    create_user,
-    edit_user,
-    delete_user,
-
-    get_menus,
-    get_menu,
-    create_menu,
-    edit_menu,
-    delete_menu,
-
-    get_menu_items,
-    get_menu_item,
-    create_menu_item,
-    edit_menu_item,
-    delete_menu_item,
-
-    get_tags,
-    get_tag,
-    create_tag,
-    edit_tag,
-    delete_tag,
-
-    get_tag_items,
-    get_tag_item,
-    create_tag_item,
-    edit_tag_item,
-    delete_tag_item,
-
-    get_redirects,
-    get_redirect,
-    create_redirect,
-    edit_redirect,
-    delete_redirect,
-
-)
 
 """
 This module defines the FastAPI router for handling chat interactions.
@@ -66,6 +20,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 
+CONFIRMATION_TTL_SECONDS = 300
+MAX_TOOL_ITERATIONS = 10
+PENDING_CONFIRMATIONS: dict[str, dict] = {}
+
 # Add more tool names here that need confirmation before execution.
 DESTRUCTIVE_TOOLS = {
     "delete_article",
@@ -76,9 +34,7 @@ DESTRUCTIVE_TOOLS = {
     "delete_tag_item",
     "delete_redirect"
 }
-CONFIRMATION_TTL_SECONDS = 300
-PENDING_CONFIRMATIONS: dict[str, dict] = {}
-MAX_TOOL_ITERATIONS = 10
+
 SENSITIVE_LOG_FIELDS = {
     "content",
     "articletext",
@@ -106,53 +62,53 @@ SYSTEM_MESSAGE = {
 
 # Maps tool names to their corresponding function.
 TOOL_MAP = {
-    "get_articles": lambda args: get_articles(),
-    "get_article": lambda args: get_article(**args),
-    "create_article": lambda args: create_article(**args),
-    "edit_article": lambda args: edit_article(**args),
-    "delete_article": lambda args: delete_article(**args),
-    "publish_article": lambda args: publish_article(**args),
-    "unpublish_article": lambda args: unpublish_article(**args),
-    "trash_article": lambda args: trash_article(**args),
+    "get_articles": lambda args: article_tools.get_articles(),
+    "get_article": lambda args: article_tools.get_article(**args),
+    "create_article": lambda args: article_tools.create_article(**args),
+    "edit_article": lambda args: article_tools.edit_article(**args),
+    "delete_article": lambda args: article_tools.delete_article(**args),
+    "publish_article": lambda args: article_tools.publish_article(**args),
+    "unpublish_article": lambda args: article_tools.unpublish_article(**args),
+    "trash_article": lambda args: article_tools.trash_article(**args),
 
-    "copy_article": lambda args: copy_article(**args),
-    "get_unpublished_articles": lambda args: get_unpublished_articles(),
+    "copy_article": lambda args: article_tools.copy_article(**args),
+    "get_unpublished_articles": lambda args: article_tools.get_unpublished_articles(),
 
-    "get_users": lambda args: get_users(),
-    "get_user": lambda args: get_user(**args),
-    "create_user": lambda args: create_user(**args),
-    "edit_user": lambda args: edit_user(**args),
-    "delete_user": lambda args: delete_user(**args),
+    "get_users": lambda args: user_tools.get_users(),
+    "get_user": lambda args: user_tools.get_user(**args),
+    "create_user": lambda args: user_tools.create_user(**args),
+    "edit_user": lambda args: user_tools.edit_user(**args),
+    "delete_user": lambda args: user_tools.delete_user(**args),
 
-    "get_menus": lambda args: get_menus(),
-    "get_menu": lambda args: get_menu(**args),
-    "create_menu": lambda args: create_menu(**args),
-    "edit_menu": lambda args: edit_menu(**args),
-    "delete_menu": lambda args: delete_menu(**args),
+    "get_menus": lambda args: menu_tools.get_menus(),
+    "get_menu": lambda args: menu_tools.get_menu(**args),
+    "create_menu": lambda args: menu_tools.create_menu(**args),
+    "edit_menu": lambda args: menu_tools.edit_menu(**args),
+    "delete_menu": lambda args: menu_tools.delete_menu(**args),
 
-    "get_menu_items": lambda args: get_menu_items(**args),
-    "get_menu_item": lambda args: get_menu_item(**args),
-    "create_menu_item": lambda args: create_menu_item(**args),
-    "edit_menu_item": lambda args: edit_menu_item(**args),
-    "delete_menu_item": lambda args: delete_menu_item(**args),
+    "get_menu_items": lambda args: menu_tools.get_menu_items(**args),
+    "get_menu_item": lambda args: menu_tools.get_menu_item(**args),
+    "create_menu_item": lambda args: menu_tools.create_menu_item(**args),
+    "edit_menu_item": lambda args: menu_tools.edit_menu_item(**args),
+    "delete_menu_item": lambda args: menu_tools.delete_menu_item(**args),
 
-    "get_tags": lambda args: get_tags(),
-    "get_tag": lambda args: get_tag(**args),
-    "create_tag": lambda args: create_tag(**args),
-    "edit_tag": lambda args: edit_tag(**args),
-    "delete_tag": lambda args: delete_tag(**args),
+    "get_tags": lambda args: tag_tools.get_tags(),
+    "get_tag": lambda args: tag_tools.get_tag(**args),
+    "create_tag": lambda args: tag_tools.create_tag(**args),
+    "edit_tag": lambda args: tag_tools.edit_tag(**args),
+    "delete_tag": lambda args: tag_tools.delete_tag(**args),
 
-    "get_tag_items": lambda args: get_tag_items(**args),
-    "get_tag_item": lambda args: get_tag_item(**args),
-    "create_tag_item": lambda args: create_tag_item(**args),
-    "edit_tag_item": lambda args: edit_tag_item(**args),
-    "delete_tag_item": lambda args: delete_tag_item(**args),
+    "get_tag_items": lambda args: tag_tools.get_tag_items(**args),
+    "get_tag_item": lambda args: tag_tools.get_tag_item(**args),
+    "create_tag_item": lambda args: tag_tools.create_tag_item(**args),
+    "edit_tag_item": lambda args: tag_tools.edit_tag_item(**args),
+    "delete_tag_item": lambda args: tag_tools.delete_tag_item(**args),
 
-    "get_redirects": lambda args: get_redirects(),
-    "get_redirect": lambda args: get_redirect(**args),
-    "create_redirect": lambda args: create_redirect(**args),
-    "edit_redirect": lambda args: edit_redirect(**args),
-    "delete_redirect": lambda args: delete_redirect(**args),
+    "get_redirects": lambda args: redirect_tools.get_redirects(),
+    "get_redirect": lambda args: redirect_tools.get_redirect(**args),
+    "create_redirect": lambda args: redirect_tools.create_redirect(**args),
+    "edit_redirect": lambda args: redirect_tools.edit_redirect(**args),
+    "delete_redirect": lambda args: redirect_tools.delete_redirect(**args),
 }
 
 
