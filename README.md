@@ -1,80 +1,72 @@
 # Joomla MCP Server
 
-En modern FastAPI-baserad server för att styra och interagera med Joomla 4 Core API via naturligt språk och externa klienter.
+A modern FastAPI-based server for controlling and interacting with the Joomla 4 Core API using natural language and external clients.
 
-## Funktionalitet
+## Features
 
-- Chat-UI där användaren kan skriva frågor/kommandon på naturligt språk och få dem utförda mot Joomla.
-- Verktyg ("tools") för artiklar, användare, menyer, taggar och omdirigeringar.
-- LLM (OpenAI) tolkar användarens fråga och väljer rätt verktyg automatiskt.
-- Server-side guardrails för att skydda mot destruktiva åtgärder utan bekräftelse.
-- Exponering av samma verktyg via MCP-protokollet för externa system.
+- Chat UI where users can write questions/commands in natural language and have them executed against Joomla.
+- Tools for articles, users, menus, tags, and redirects.
+- LLM (OpenAI) interprets the user's question and automatically selects the correct tool.
+- Server-side guardrails to protect against destructive actions without confirmation.
+- Exposes the same tools via the MCP protocol for external systems.
 
-## Arkitektur
+## Architecture
 
 ```
 Browser UI (templates/index.html + static/chat.js)
      -> POST /chat
           -> src/routes/chat_router.py
-               -> src/services/llm_service.py (OpenAI + verktygs-schema)
+               -> src/services/llm_service.py (OpenAI + tool schema)
                -> TOOL_MAP dispatch
                -> src/tools/article_tools.py
                -> src/tools/user_tools.py
                -> src/tools/menu_tools.py
                -> src/tools/tag_tools.py
                -> src/tools/redirect_tools.py
-                    -> respektive src/services/*_service.py
+                    -> respective src/services/*_service.py
                          -> Joomla 4 Core API
 
-Extern MCP-klient
-     -> /mcp (FastMCP mount i main.py)
+External MCP client
+     -> /mcp (FastMCP mount in main.py)
           -> src/tools/article_tools.py etc.
-               -> respektive src/services/*_service.py
+               -> respective src/services/*_service.py
                     -> Joomla 4 Core API
 ```
 
-## Lagers ansvar
+## Layer Responsibilities
 
-- **llm_service.py**: Beskriver tillgängliga verktyg enligt OpenAI function-calling-schema.
-- **chat_router.py**: Orkestrerar flödet, hanterar bekräftelser och mappar verktygsnamn till rätt Python-funktion.
-- **tools/\*\_tools.py**: Implementerar domänspecifika operationer (artiklar, användare, menyer etc.).
-- **services/\*\_service.py**: Pratar direkt med Joomla 4 Core API.
+- **llm_service.py**: Describes available tools according to the OpenAI function-calling schema.
+- **chat_router.py**: Orchestrates the flow, handles confirmations, and maps tool names to the correct Python function.
+- **tools/\*\_tools.py**: Implements domain-specific operations (articles, users, menus, etc.).
+- **services/\*\_service.py**: Communicates directly with the Joomla 4 Core API.
 
-## Lägga till ett nytt verktyg
+## Adding a New Tool
 
-1. Implementera funktionen i rätt `src/tools/*_tools.py`-fil.
-2. Lägg till schema-entry i `OPENAI_TOOL_SCHEMAS` i `src/services/llm_service.py`.
-3. Lägg till dispatch-entry i `TOOL_MAP` i `src/routes/chat_router.py`.
-4. Om verktyget är destruktivt, lägg till namnet i `DESTRUCTIVE_TOOLS` i `chat_router.py`.
+1. Implement the function in the appropriate `src/tools/*_tools.py` file.
+2. Add a schema entry in `OPENAI_TOOL_SCHEMAS` in `src/services/llm_service.py`.
+3. Add a dispatch entry in `TOOL_MAP` in `src/routes/chat_router.py`.
+4. If the tool is destructive, add its name to `DESTRUCTIVE_TOOLS` in `chat_router.py`.
 
 ## Endpoints
 
-| Metod | Endpoint | Syfte                                                                 |
-| ----- | -------- | --------------------------------------------------------------------- |
-| GET   | `/`      | Renderar chat-UI (index.html)                                         |
-| POST  | `/chat`  | Tar emot prompt, låter LLM välja verktyg och utför Joomla-operationer |
-| ASGI  | `/mcp`   | Exponerar verktyg för externa MCP-klienter                            |
+| Method | Endpoint | Purpose                                                        |
+| ------ | -------- | -------------------------------------------------------------- |
+| GET    | `/`      | Renders the chat UI (index.html)                               |
+| POST   | `/chat`  | Receives prompt, lets LLM choose tool, and performs Joomla ops |
+| ASGI   | `/mcp`   | Exposes tools for external MCP clients                         |
 
 ## Logging
 
-- Loggning konfigureras i `src/config/logging_config.py` och initieras från `main.py`.
-- Känsliga fält maskeras innan loggning.
-- Fel och händelser loggas för spårbarhet.
+- Logging is configured in `src/config/logging_config.py` and initialized from `main.py`.
+- Sensitive fields are masked before logging.
+- Errors and events are logged for traceability.
 
-## Exempel på verktyg
+## Development
 
-- `get_articles` – Lista alla artiklar
-- `get_article` – Hämta artikel med ID
-- `create_article` – Skapa ny artikel
-- `delete_article` – Ta bort artikel (kräver bekräftelse)
-- `get_users`, `get_menus`, `get_tags`, `get_redirects` m.fl.
+- The project is modular and easy to extend with more tools/domains.
+- Follow the checklist above to add new features.
 
-## Utveckling
-
-- Projektet är modulärt och lätt att bygga ut med fler verktyg/domäner.
-- Följ checklistan ovan för att lägga till nya funktioner.
-
-## Projektstruktur
+## Project Structure
 
 ```text
 ├── main.py
@@ -111,7 +103,49 @@ Extern MCP-klient
           └── formatters.py
 ```
 
+## Getting Started
+
+### 1. Install uv (if not already installed)
+
+```bash
+pip install uv
+```
+
+### 2. Install Dependencies
+
+```bash
+uv sync
+```
+
+### 3. Configure Environment
+
+Create `.env` in the project root:
+
+```env
+JOOMLA_URL=your_joomla_url_here
+JOOMLA_API_TOKEN=your_token_here
+OPENAI_API_KEY=your_openai_key_here
+```
+
+### 4. Start the Server
+
+```bash
+uv run main.py
+```
+
+Now runs on local Server: `http://127.0.0.1:8000`
+
 ---
 
-**Repo:** `kimpabooy/Joomla_MCP_Server`  
-**Python:** `>= 3.13`
+## Dependencies
+
+| Package         | Purpose                      |
+| --------------- | ---------------------------- |
+| `fastapi`       | Web framework                |
+| `fastmcp`       | MCP server                   |
+| `uvicorn`       | ASGI server                  |
+| `jinja2`        | HTML templates               |
+| `openai`        | LLM function calling         |
+| `pydantic`      | Validation                   |
+| `requests`      | Joomla HTTP calls            |
+| `python-dotenv` | Environment variable loading |
