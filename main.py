@@ -1,9 +1,14 @@
+from fastmcp import FastMCP
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from src.config.logging_config import configure_logging
 from src.routes.chat_router import router as chat_router
-from src.tools.mcp_tools import mcp
+from src.tools.article_tools import *
+from src.tools.user_tools import *
+from src.tools.menu_tools import *
+from src.tools.tag_tools import *
+from src.tools.redirect_tools import *
 import uvicorn
 
 # Configure the logging system.
@@ -13,8 +18,11 @@ configure_logging()
 load_dotenv()
 
 # Create FastAPI app with MCP's lifespan and include routers
-# Create MCP ASGI app and get its lifespan.
+# Skapa MCP-app från valfri av de importerade modulerna
+mcp = FastMCP("Joomla MCP Server")
 mcp_app = mcp.http_app()
+
+# Skapa FastAPI-app och inkludera MCP:s lifespan för att hantera start och stopp av MCP-servern.
 app = FastAPI(lifespan=mcp_app.lifespan)
 
 # Mount static files and include the chat router.

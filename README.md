@@ -1,162 +1,123 @@
-# MCP Server (Python)
+# Joomla MCP Server
 
-FastAPI project for the Joomla 4 Core API with two integration paths:
+A modern FastAPI-based server for controlling and interacting with the Joomla 4 Core API using natural language and external clients.
 
-1. Web UI natural language to the LLM (`POST /chat`)
-2. MCP server for external clients (`/mcp`)
+## Features
 
-The project calls the Joomla API through tools in `mcp_tools.py`, and the LLM selects tools via OpenAI function calling.
-
-Repo: `kimpabooy/Joomla_MCP_Server`  
-Package name: `joomla-mcp-server`  
-Python: `>= 3.13`
-
----
+- Chat UI where users can write questions/commands in natural language and have them executed against Joomla.
+- Tools for articles, users, menus, tags, and redirects.
+- LLM (OpenAI) interprets the user's question and automatically selects the correct tool.
+- Server-side guardrails to protect against destructive actions without confirmation.
+- Exposes the same tools via the MCP protocol for external systems.
 
 ## Architecture
 
-```text
+```
 Browser UI (templates/index.html + static/chat.js)
      -> POST /chat
           -> src/routes/chat_router.py
-               -> src/services/llm_service.py (OpenAI + OPENAI_TOOL_SCHEMAS)
-               -> server-side guardrails + TOOL_MAP dispatch
-               -> src/tools/mcp_tools.py
-                    -> src/services/joomla_service.py
+               -> src/services/llm_service.py (OpenAI + tool schema)
+               -> TOOL_MAP dispatch
+               -> src/tools/article_tools.py
+               -> src/tools/user_tools.py
+               -> src/tools/menu_tools.py
+               -> src/tools/tag_tools.py
+               -> src/tools/redirect_tools.py
+                    -> respective src/services/*_service.py
                          -> Joomla 4 Core API
 
 External MCP client
      -> /mcp (FastMCP mount in main.py)
-          -> src/tools/mcp_tools.py
-               -> src/services/joomla_service.py
+          -> src/tools/article_tools.py etc.
+               -> respective src/services/*_service.py
                     -> Joomla 4 Core API
 ```
 
----
+## Layer Responsibilities
 
-## Logging
+- **llm_service.py**: Describes available tools according to the OpenAI function-calling schema.
+- **chat_router.py**: Orchestrates the flow, handles confirmations, and maps tool names to the correct Python function.
+- **tools/\*\_tools.py**: Implements domain-specific operations (articles, users, menus, etc.).
+- **services/\*\_service.py**: Communicates directly with the Joomla 4 Core API.
 
-Logging is configured in `src/config/logging_config.py` and initialized from `main.py`.
+## Adding a New Tool
 
-Key principles:
-
-1. Logs are written with file rotation (`1 MB` per file, `5` backups).
-2. Default log level is `INFO`, while noisy third-party loggers are reduced to `WARNING`.
-3. Chat flow activity and runtime errors are logged for observability and debugging.
-4. Sensitive fields are masked before logging, and exceptions include stack traces.
-
----
-
-## Responsibilities (Tools)
-
-Different kind of tool-names appear in multiple places, but each layer has a different responsibility.
-Here are some explanation:
-
-1. `src/services/llm_service.py`
-   - `OPENAI_TOOL_SCHEMAS` Describes tools as OpenAI function-calling schema.
-   - Purpose: Tells the model what tools are available and what kind of arguments are required.
-
-2. `src/routes/chat_router.py`
-   - `TOOL_MAP` Maps tool names from model output to Python callables.
-   - Purpose: Runtime dispatch, execution flow, and confirmation guardrails.
-
-3. `src/tools/mcp_tools.py`
-   - `@mcp.tool()` Functions implement the actual Joomla operations.
-   - Purpose: Business actions and MCP exposure for external clients.
-
-In short:
-
-- `llm_service.py` = Schema/Contract for planning
-- `chat_router.py` = Orchestration and execution safety
-- `mcp_tools.py` = Implementation
-
----
-
----
-
-## Add a New Tool (Checklist)
-
-When adding a tool, update all three layers:
-
-1. Implement function in `src/tools/mcp_tools.py` (and decorate with `@mcp.tool()`).
-2. Add schema entry in `OPENAI_TOOL_SCHEMAS` in `src/services/llm_service.py`.
-3. Add dispatch entry in `TOOL_MAP` in `src/routes/chat_router.py`.
-4. If destructive, add the tool name to `DESTRUCTIVE_TOOLS` in `src/routes/chat_router.py`.
-
-This keeps chat flow and external MCP flow aligned.
-
----
+1. Implement the function in the appropriate `src/tools/*_tools.py` file.
+2. Add a schema entry in `OPENAI_TOOL_SCHEMAS` in `src/services/llm_service.py`.
+3. Add a dispatch entry in `TOOL_MAP` in `src/routes/chat_router.py`.
+4. If the tool is destructive, add its name to `DESTRUCTIVE_TOOLS` in `chat_router.py`.
 
 ## Endpoints
 
-### App Routes
+| Method | Endpoint | Purpose                                                        |
+| ------ | -------- | -------------------------------------------------------------- |
+| GET    | `/`      | Renders the chat UI (index.html)                               |
+| POST   | `/chat`  | Receives prompt, lets LLM choose tool, and performs Joomla ops |
+| ASGI   | `/mcp`   | Exposes tools for external MCP clients                         |
 
-| Method | Endpoint | Purpose                                                                   |
-| ------ | -------- | ------------------------------------------------------------------------- |
-| `GET`  | `/`      | Renders the chat UI (`templates/index.html`).                             |
-| `POST` | `/chat`  | Receives a prompt, lets the LLM choose tools, and runs Joomla operations. |
+## Logging
 
-### MCP Route
+- Logging is configured in `src/config/logging_config.py` and initialized from `main.py`.
+- Sensitive fields are masked before logging.
+- Errors and events are logged for traceability.
 
-| Method     | Endpoint | Purpose                                                               |
-| ---------- | -------- | --------------------------------------------------------------------- |
-| ASGI mount | `/mcp`   | Exposes FastMCP tools for external MCP clients (SSE/streamable HTTP). |
+## Development
 
-Note: `/clear` is handled on the client side in `static/chat.js` and only clears the chat log in the browser.
-
----
-
-## Tools (LLM + MCP)
-
-Defined in `src/tools/mcp_tools.py` and mirrored as function-calling schema in `src/services/llm_service.py`.
-
-| Tool             | Purpose                                       |
-| ---------------- | --------------------------------------------- |
-| `list_articles`  | Fetch all articles.                           |
-| `get_article`    | Fetch an article by ID.                       |
-| `publish`        | Publish an article by ID.                     |
-| `unpublish`      | Unpublish an article by ID.                   |
-| `trash`          | Move an article to trash.                     |
-| `create_article` | Create an article with title and content.     |
-| `edit_article`   | Edit an article with a new title and content. |
-| `remove_article` | Delete an article permanently.                |
-
----
+- The project is modular and easy to extend with more tools/domains.
+- Follow the checklist above to add new features.
 
 ## Project Structure
 
 ```text
 ├── main.py
 ├── pyproject.toml
-├── .env
 ├── templates/
-│   ├── index.html
+│   └── index.html
 ├── static/
 │   ├── chat.js
-│   └── style.css
+│   ├── style.css
+│   └── favicon.ico
 └── src/
      ├── config/
      │   └── logging_config.py
-    ├── routes/
-    │   ├── chat_router.py
-    └── services/
-    │   ├── llm_service.py
-    │   └── joomla_service.py
-    └── tools/
-        └── mcp_tools.py
+     ├── routes/
+     │   └── chat_router.py
+     ├── services/
+     │   ├── __init__.py
+     │   ├── articles_service.py
+     │   ├── joomla_service.py
+     │   ├── llm_service.py
+     │   ├── menus_service.py
+     │   ├── redirects_service.py
+     │   ├── tags_service.py
+     │   └── users_service.py
+     ├── tools/
+     │   ├── article_tools.py
+     │   ├── menu_tools.py
+     │   ├── mcp_tools.py
+     │   ├── redirect_tools.py
+     │   ├── tag_tools.py
+     │   └── user_tools.py
+     └── utils/
+          ├── config.py
+          └── formatters.py
 ```
-
----
 
 ## Getting Started
 
-### 1. Install Dependencies
+### 1. Install uv (if not already installed)
+
+```bash
+pip install uv
+```
+
+### 2. Install Dependencies
 
 ```bash
 uv sync
 ```
 
-### 2. Configure Environment
+### 3. Configure Environment
 
 Create `.env` in the project root:
 
@@ -166,13 +127,13 @@ JOOMLA_API_TOKEN=your_token_here
 OPENAI_API_KEY=your_openai_key_here
 ```
 
-### 3. Start the Server
+### 4. Start the Server
 
 ```bash
 uv run main.py
 ```
 
-Local Server: `http://127.0.0.1:8000`
+Now runs on local Server: `http://127.0.0.1:8000`
 
 ---
 
