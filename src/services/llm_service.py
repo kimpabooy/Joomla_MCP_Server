@@ -17,7 +17,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "list_articles",
+            "name": "get_articles",
             "description": "Lista alla artiklar från Joomla",
             "parameters": {"type": "object", "properties": {}}
         }
@@ -39,7 +39,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "publish",
+            "name": "publish_article",
             "description": "Publicera en artikel baserat på ID",
             "parameters": {
                 "type": "object",
@@ -53,7 +53,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "unpublish",
+            "name": "unpublish_article",
             "description": "Avpublicera en artikel baserat på ID",
             "parameters": {
                 "type": "object",
@@ -67,7 +67,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "trash",
+            "name": "trash_article",
             "description": "Flytta en artikel baserat på ID till papperskorgen",
             "parameters": {
                 "type": "object",
@@ -584,6 +584,341 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_messages",
+            "description": "Hämta alla meddelanden från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_message",
+            "description": "Hämta detaljer för ett specifikt meddelande baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message_id": {"type": "integer", "description": "Meddelandets ID"}
+                },
+                "required": ["message_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_message",
+            "description": "Skapa ett nytt meddelande i Joomla med den givna texten",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string", "description": "Meddelandets text/innehåll"}
+                },
+                "required": ["text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_message",
+            "description": "Redigera ett befintligt meddelande i Joomla baserat på dess ID med ny text",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message_id": {"type": "integer", "description": "Meddelandets ID"},
+                    "text": {"type": "string", "description": "Ny text/innehåll för meddelandet"}
+                },
+                "required": ["message_id", "text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_message",
+            "description": "Ta bort ett meddelande från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message_id": {"type": "integer", "description": "Meddelandets ID"}
+                },
+                "required": ["message_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_modules",
+            "description": "Hämta alla moduler från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_module",
+            "description": "Hämta detaljer för en specifik modul baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_id": {"type": "integer", "description": "Modulens ID"}
+                },
+                "required": ["module_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_module",
+            "description": "Skapa en ny modul i Joomla med den givna titeln och innehållet",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Modulens titel"},
+                    "content": {"type": "string", "description": "Modulens innehåll/text"}
+                },
+                "required": ["title", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_module",
+            "description": "Redigera en befintlig modul i Joomla baserat på dess ID med ny titel och innehåll",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_id": {"type": "integer", "description": "Modulens ID"},
+                    "title": {"type": "string", "description": "Ny titel för modulen"},
+                    "content": {"type": "string", "description": "Nytt innehåll för modulen"}
+                },
+                "required": ["module_id", "title", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_module",
+            "description": "Ta bort en modul från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_id": {"type": "integer", "description": "Modulens ID"}
+                },
+                "required": ["module_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_newsfeeds",
+            "description": "Hämta alla nyhetsflöden från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_newsfeed",
+            "description": "Hämta detaljer för ett specifikt nyhetsflöde baserat på dess ID",
+            "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "newsfeed_id": {"type": "integer", "description": "Nyhetsflödets ID"}
+                    },
+                "required": ["newsfeed_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_newsfeed",
+            "description": "Skapa ett nytt nyhetsflöde i Joomla med den givna titeln, länken och publiceringsstatus",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Nyhetsflödets titel"},
+                    "link": {"type": "string", "description": "Nyhetsflödets länk"},
+                    "published": {"type": "boolean", "description": "Om nyhetsflödet är publicerat"}
+                },
+                "required": ["title", "link", "published"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_newsfeed",
+            "description": "Redigera ett befintligt nyhetsflöde i Joomla baserat på dess ID med ny titel, länk och publiceringsstatus",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "newsfeed_id": {"type": "integer", "description": "Nyhetsflödets ID"},
+                    "title": {"type": "string", "description": "Ny titel för nyhetsflödet"},
+                    "link": {"type": "string", "description": "Ny länk för nyhetsflödet"},
+                    "published": {"type": "boolean", "description": "Om nyhetsflödet är publicerat"}
+                },
+                "required": ["newsfeed_id", "title", "link", "published"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_newsfeed",
+            "description": "Ta bort ett nyhetsflöde från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "newsfeed_id": {"type": "integer", "description": "Nyhetsflödets ID"}
+                },
+                "required": ["newsfeed_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_templates",
+            "description": "Hämta alla mallar från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_template",
+            "description": "Hämta detaljer för en specifik mall baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "Mallens ID"}
+                },
+                "required": ["template_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_template",
+            "description": "Redigera en befintlig mall i Joomla baserat på dess ID med ny titel och innehåll",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "Mallens ID"},
+                    "title": {"type": "string", "description": "Ny titel för mallen"},
+                    "content": {"type": "string", "description": "Nytt innehåll för mallen"}
+                },
+                "required": ["template_id", "title", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_template",
+            "description": "Ta bort en mall från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "Mallens ID"}
+                },
+                "required": ["template_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_languages",
+            "description": "Hämta alla språk från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_language",
+            "description": "Hämta detaljer för ett specifikt språk baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "language_id": {"type": "integer", "description": "Språkets ID"}
+                },
+                "required": ["language_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_language",
+            "description": "Skapa ett nytt språk i Joomla med den givna titeln och koden",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Språkets titel"},
+                    "code": {"type": "string", "description": "Språkets kod (t.ex. 'en-GB')"}
+                },
+                "required": ["title", "code"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_language",
+            "description": "Redigera ett befintligt språk i Joomla baserat på dess ID med ny titel och kod",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "language_id": {"type": "integer", "description": "Språkets ID"},
+                    "title": {"type": "string", "description": "Ny titel för språket"},
+                    "code": {"type": "string", "description": "Ny kod för språket (t.ex. 'en-GB')"}
+                },
+                "required": ["language_id", "title", "code"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_language",
+            "description": "Ta bort ett språk från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "language_id": {"type": "integer", "description": "Språkets ID"}
+                },
+                "required": ["language_id"]
+            }
+        }
+    },
 
 ]
 
@@ -603,7 +938,7 @@ def _parse_tool_args(raw_arguments: str | None) -> dict:
 def ask_llm(messages: list[dict[str, Any]]) -> dict:
     """Sends a list of messages to the LLM and returns either tool calls or a text response."""
     response = client.chat.completions.create(
-        max_tokens=500,
+        # max_tokens=500,
         model="gpt-4o-mini",
         messages=cast(Any, messages),
         tools=OPENAI_TOOL_SCHEMAS,

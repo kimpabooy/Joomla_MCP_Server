@@ -1,7 +1,8 @@
 const textarea = document.getElementById('endpointInput');
 const chatlog = document.getElementById('chatlog');
 const responseBox = document.getElementById('endpoint-response');
-const WELCOME_MESSAGE = 'Hej! Jag kan hjälpa dig att hantera Joomla-artiklar. Vad vill du göra?';
+const sendBtn = document.getElementById('sendBtn');
+const WELCOME_MESSAGE = 'Välkommen! Jag är redo att assistera dig med dina Joomla-uppgifter.';
 
 function scrollChatToBottom() {
     chatlog.scrollTop = chatlog.scrollHeight;
@@ -34,6 +35,22 @@ function addBotMessage(text, options = {}) {
     botMsg.className = 'chat-msg bot';
     if (options.pending) {
         botMsg.classList.add('pending');
+        // Visa endast animationen "Tänker..." utan text
+        const loaderWrap = document.createElement('span');
+        loaderWrap.className = 'ai-thinking-wrap';
+        const loaderText = document.createElement('span');
+        loaderText.textContent = 'Tänker';
+        loaderText.className = 'ai-thinking-text';
+        const loader = document.createElement('span');
+        loader.className = 'ai-thinking-loader';
+        loader.innerHTML = '<span></span><span></span><span></span>';
+        loaderWrap.appendChild(loaderText);
+        loaderWrap.appendChild(loader);
+        botMsg.appendChild(loaderWrap);
+        // Hoppa över texten nedan när pending
+        chatlog.appendChild(botMsg);
+        scrollChatToBottom();
+        return botMsg;
     }
     const textSpan = document.createElement('span');
     textSpan.className = 'msg-text';
@@ -59,6 +76,7 @@ function addBotMessage(text, options = {}) {
 
 // Sends a message to the LLM and handles the response, including any required confirmations or errors.
 async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
+    if (sendBtn) sendBtn.disabled = true;
     addUserMessage(shownMessage);
     responseBox.innerHTML = '<span class="status-thinking">AI bearbetar begäran...</span>';
     const pendingBotMsg = addBotMessage('AI tänker...', { pending: true });
@@ -95,6 +113,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             } else {
                 addBotMessage('Åtgärden avbröts.');
             }
+            if (sendBtn) sendBtn.disabled = false;
             return;
         }
 
@@ -102,6 +121,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             pendingBotMsg.remove();
             addBotMessage(data.error);
             responseBox.innerHTML = '';
+            if (sendBtn) sendBtn.disabled = false;
             return;
         }
 
@@ -129,15 +149,18 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             } else {
                 responseBox.innerHTML = '';
             }
+            if (sendBtn) sendBtn.disabled = false;
         } else {
             pendingBotMsg.remove();
             responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
             addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
+            if (sendBtn) sendBtn.disabled = false;
         }
     } catch (err) {
         pendingBotMsg.remove();
         addBotMessage('Fel vid kommunikation med AI. Prova igen.');
         responseBox.innerHTML = '';
+        if (sendBtn) sendBtn.disabled = false;
     }
 }
 
