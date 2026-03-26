@@ -1,6 +1,7 @@
 const textarea = document.getElementById('endpointInput');
 const chatlog = document.getElementById('chatlog');
 const responseBox = document.getElementById('endpoint-response');
+const sendBtn = document.getElementById('sendBtn');
 const WELCOME_MESSAGE = 'Välkommen! Jag är redo att assistera dig med dina Joomla-uppgifter.';
 
 function scrollChatToBottom() {
@@ -75,6 +76,7 @@ function addBotMessage(text, options = {}) {
 
 // Sends a message to the LLM and handles the response, including any required confirmations or errors.
 async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
+    if (sendBtn) sendBtn.disabled = true;
     addUserMessage(shownMessage);
     responseBox.innerHTML = '<span class="status-thinking">AI bearbetar begäran...</span>';
     const pendingBotMsg = addBotMessage('AI tänker...', { pending: true });
@@ -111,6 +113,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             } else {
                 addBotMessage('Åtgärden avbröts.');
             }
+            if (sendBtn) sendBtn.disabled = false;
             return;
         }
 
@@ -118,6 +121,7 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             pendingBotMsg.remove();
             addBotMessage(data.error);
             responseBox.innerHTML = '';
+            if (sendBtn) sendBtn.disabled = false;
             return;
         }
 
@@ -145,15 +149,18 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
             } else {
                 responseBox.innerHTML = '';
             }
+            if (sendBtn) sendBtn.disabled = false;
         } else {
             pendingBotMsg.remove();
             responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
             addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
+            if (sendBtn) sendBtn.disabled = false;
         }
     } catch (err) {
         pendingBotMsg.remove();
         addBotMessage('Fel vid kommunikation med AI. Prova igen.');
         responseBox.innerHTML = '';
+        if (sendBtn) sendBtn.disabled = false;
     }
 }
 
