@@ -14,6 +14,7 @@ from src.tools import (
     message_tool,
     module_tool,
     newsfeed_tool,
+    template_tool,
 )
 
 """
@@ -42,6 +43,7 @@ DESTRUCTIVE_TOOLS = {
     "delete_message",
     "delete_module",
     "delete_newsfeed",
+    "delete_template",
 }
 
 SENSITIVE_LOG_FIELDS = {
@@ -136,6 +138,12 @@ TOOL_MAP = {
     "create_newsfeed": lambda args: newsfeed_tool.create_newsfeed(**args),
     "edit_newsfeed": lambda args: newsfeed_tool.edit_newsfeed(**args),
     "delete_newsfeed": lambda args: newsfeed_tool.delete_newsfeed(**args),
+
+    "get_templates": lambda args: template_tool.get_templates(),
+    "get_template": lambda args: template_tool.get_template(**args),
+    "create_template": lambda args: template_tool.create_template(**args),
+    "edit_template": lambda args: template_tool.edit_template(**args),
+    "delete_template": lambda args: template_tool.delete_template(**args),
 }
 
 
