@@ -11,7 +11,8 @@ from src.tools import (
     menu_tool,
     redirect_tool,
     tag_tool, user_tool,
-    message_tool
+    message_tool,
+    module_tool,
 )
 
 """
@@ -37,7 +38,8 @@ DESTRUCTIVE_TOOLS = {
     "delete_tag",
     "delete_tag_item",
     "delete_redirect",
-    "delete_message"
+    "delete_message",
+    "delete_module",
 }
 
 SENSITIVE_LOG_FIELDS = {
@@ -120,6 +122,12 @@ TOOL_MAP = {
     "create_message": lambda args: message_tool.create_message(**args),
     "edit_message": lambda args: message_tool.edit_message(**args),
     "delete_message": lambda args: message_tool.delete_message(**args),
+
+    "get_modules": lambda args: module_tool.get_modules(),
+    "get_module": lambda args: module_tool.get_module(**args),
+    "create_module": lambda args: module_tool.create_module(**args),
+    "edit_module": lambda args: module_tool.edit_module(**args),
+    "delete_module": lambda args: module_tool.delete_module(**args),
 }
 
 
