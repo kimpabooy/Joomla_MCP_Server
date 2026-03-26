@@ -1,15 +1,11 @@
-from fastmcp import FastMCP
 from dotenv import load_dotenv
+from fastmcp import FastMCP
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from src.config.logging_config import configure_logging
 from src.routes.chat_router import router as chat_router
-from src.tools.article_tools import *
-from src.tools.user_tools import *
-from src.tools.menu_tools import *
-from src.tools.tag_tools import *
-from src.tools.redirect_tools import *
 import uvicorn
+
 
 # Configure the logging system.
 configure_logging()
