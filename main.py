@@ -14,11 +14,10 @@ configure_logging()
 load_dotenv()
 
 # Create FastAPI app with MCP's lifespan and include routers
-# Skapa MCP-app från valfri av de importerade modulerna
 mcp = FastMCP("Joomla MCP Server")
 mcp_app = mcp.http_app()
 
-# Skapa FastAPI-app och inkludera MCP:s lifespan för att hantera start och stopp av MCP-servern.
+# Create FastAPI-app and include MCP's lifespan for managing MCP server lifecycle.
 app = FastAPI(lifespan=mcp_app.lifespan)
 
 # Mount static files and include the chat router.
@@ -30,4 +29,4 @@ app.mount("/mcp", mcp_app)
 
 # Run the app with Uvicorn.
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000)
