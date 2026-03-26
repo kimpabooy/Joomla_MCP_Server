@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from fastapi import FastAPI
@@ -30,4 +32,4 @@ app.mount("/mcp", mcp_app)
 
 # Run the app with Uvicorn.
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

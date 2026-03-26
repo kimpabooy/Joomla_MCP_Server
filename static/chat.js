@@ -1,7 +1,7 @@
 const textarea = document.getElementById('endpointInput');
 const chatlog = document.getElementById('chatlog');
 const responseBox = document.getElementById('endpoint-response');
-const WELCOME_MESSAGE = 'Hej! Jag kan hjälpa dig att hantera Joomla-artiklar. Vad vill du göra?';
+const WELCOME_MESSAGE = 'Välkommen! Jag är redo att assistera dig med dina Joomla-uppgifter.';
 
 function scrollChatToBottom() {
     chatlog.scrollTop = chatlog.scrollHeight;

@@ -7,11 +7,11 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from src.services.llm_service import ask_llm
 from src.tools import (
-    article_tools,
-    user_tools,
-    menu_tools,
-    tag_tools,
-    redirect_tools
+    article_tool,
+    menu_tool,
+    redirect_tool,
+    tag_tool, user_tool,
+    message_tool
 )
 
 """
@@ -36,7 +36,8 @@ DESTRUCTIVE_TOOLS = {
     "delete_menu_item",
     "delete_tag",
     "delete_tag_item",
-    "delete_redirect"
+    "delete_redirect",
+    "delete_message"
 }
 
 SENSITIVE_LOG_FIELDS = {
@@ -66,53 +67,59 @@ SYSTEM_MESSAGE = {
 
 # Maps tool names to their corresponding function.
 TOOL_MAP = {
-    "get_articles": lambda args: article_tools.get_articles(),
-    "get_article": lambda args: article_tools.get_article(**args),
-    "create_article": lambda args: article_tools.create_article(**args),
-    "edit_article": lambda args: article_tools.edit_article(**args),
-    "delete_article": lambda args: article_tools.delete_article(**args),
-    "publish_article": lambda args: article_tools.publish_article(**args),
-    "unpublish_article": lambda args: article_tools.unpublish_article(**args),
-    "trash_article": lambda args: article_tools.trash_article(**args),
+    "get_articles": lambda args: article_tool.get_articles(),
+    "get_article": lambda args: article_tool.get_article(**args),
+    "create_article": lambda args: article_tool.create_article(**args),
+    "edit_article": lambda args: article_tool.edit_article(**args),
+    "delete_article": lambda args: article_tool.delete_article(**args),
+    "publish_article": lambda args: article_tool.publish_article(**args),
+    "unpublish_article": lambda args: article_tool.unpublish_article(**args),
+    "trash_article": lambda args: article_tool.trash_article(**args),
 
-    "copy_article": lambda args: article_tools.copy_article(**args),
-    "get_unpublished_articles": lambda args: article_tools.get_unpublished_articles(),
+    "copy_article": lambda args: article_tool.copy_article(**args),
+    "get_unpublished_articles": lambda args: article_tool.get_unpublished_articles(),
 
-    "get_users": lambda args: user_tools.get_users(),
-    "get_user": lambda args: user_tools.get_user(**args),
-    "create_user": lambda args: user_tools.create_user(**args),
-    "edit_user": lambda args: user_tools.edit_user(**args),
-    "delete_user": lambda args: user_tools.delete_user(**args),
+    "get_users": lambda args: user_tool.get_users(),
+    "get_user": lambda args: user_tool.get_user(**args),
+    "create_user": lambda args: user_tool.create_user(**args),
+    "edit_user": lambda args: user_tool.edit_user(**args),
+    "delete_user": lambda args: user_tool.delete_user(**args),
 
-    "get_menus": lambda args: menu_tools.get_menus(),
-    "get_menu": lambda args: menu_tools.get_menu(**args),
-    "create_menu": lambda args: menu_tools.create_menu(**args),
-    "edit_menu": lambda args: menu_tools.edit_menu(**args),
-    "delete_menu": lambda args: menu_tools.delete_menu(**args),
+    "get_menus": lambda args: menu_tool.get_menus(),
+    "get_menu": lambda args: menu_tool.get_menu(**args),
+    "create_menu": lambda args: menu_tool.create_menu(**args),
+    "edit_menu": lambda args: menu_tool.edit_menu(**args),
+    "delete_menu": lambda args: menu_tool.delete_menu(**args),
 
-    "get_menu_items": lambda args: menu_tools.get_menu_items(**args),
-    "get_menu_item": lambda args: menu_tools.get_menu_item(**args),
-    "create_menu_item": lambda args: menu_tools.create_menu_item(**args),
-    "edit_menu_item": lambda args: menu_tools.edit_menu_item(**args),
-    "delete_menu_item": lambda args: menu_tools.delete_menu_item(**args),
+    "get_menu_items": lambda args: menu_tool.get_menu_items(**args),
+    "get_menu_item": lambda args: menu_tool.get_menu_item(**args),
+    "create_menu_item": lambda args: menu_tool.create_menu_item(**args),
+    "edit_menu_item": lambda args: menu_tool.edit_menu_item(**args),
+    "delete_menu_item": lambda args: menu_tool.delete_menu_item(**args),
 
-    "get_tags": lambda args: tag_tools.get_tags(),
-    "get_tag": lambda args: tag_tools.get_tag(**args),
-    "create_tag": lambda args: tag_tools.create_tag(**args),
-    "edit_tag": lambda args: tag_tools.edit_tag(**args),
-    "delete_tag": lambda args: tag_tools.delete_tag(**args),
+    "get_tags": lambda args: tag_tool.get_tags(),
+    "get_tag": lambda args: tag_tool.get_tag(**args),
+    "create_tag": lambda args: tag_tool.create_tag(**args),
+    "edit_tag": lambda args: tag_tool.edit_tag(**args),
+    "delete_tag": lambda args: tag_tool.delete_tag(**args),
 
-    "get_tag_items": lambda args: tag_tools.get_tag_items(**args),
-    "get_tag_item": lambda args: tag_tools.get_tag_item(**args),
-    "create_tag_item": lambda args: tag_tools.create_tag_item(**args),
-    "edit_tag_item": lambda args: tag_tools.edit_tag_item(**args),
-    "delete_tag_item": lambda args: tag_tools.delete_tag_item(**args),
+    "get_tag_items": lambda args: tag_tool.get_tag_items(**args),
+    "get_tag_item": lambda args: tag_tool.get_tag_item(**args),
+    "create_tag_item": lambda args: tag_tool.create_tag_item(**args),
+    "edit_tag_item": lambda args: tag_tool.edit_tag_item(**args),
+    "delete_tag_item": lambda args: tag_tool.delete_tag_item(**args),
 
-    "get_redirects": lambda args: redirect_tools.get_redirects(),
-    "get_redirect": lambda args: redirect_tools.get_redirect(**args),
-    "create_redirect": lambda args: redirect_tools.create_redirect(**args),
-    "edit_redirect": lambda args: redirect_tools.edit_redirect(**args),
-    "delete_redirect": lambda args: redirect_tools.delete_redirect(**args),
+    "get_redirects": lambda args: redirect_tool.get_redirects(),
+    "get_redirect": lambda args: redirect_tool.get_redirect(**args),
+    "create_redirect": lambda args: redirect_tool.create_redirect(**args),
+    "edit_redirect": lambda args: redirect_tool.edit_redirect(**args),
+    "delete_redirect": lambda args: redirect_tool.delete_redirect(**args),
+
+    "get_messages": lambda args: message_tool.get_messages(),
+    "get_message": lambda args: message_tool.get_message(**args),
+    "create_message": lambda args: message_tool.create_message(**args),
+    "edit_message": lambda args: message_tool.edit_message(**args),
+    "delete_message": lambda args: message_tool.delete_message(**args),
 }
 
 
