@@ -671,7 +671,7 @@ def _parse_tool_args(raw_arguments: str | None) -> dict:
 def ask_llm(messages: list[dict[str, Any]]) -> dict:
     """Sends a list of messages to the LLM and returns either tool calls or a text response."""
     response = client.chat.completions.create(
-        max_tokens=500,
+        # max_tokens=500,
         model="gpt-4o-mini",
         messages=cast(Any, messages),
         tools=OPENAI_TOOL_SCHEMAS,
