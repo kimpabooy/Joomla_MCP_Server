@@ -8,7 +8,6 @@ def format_article_data(article: dict) -> dict:
     return {
         "id": article.get("id"),
         "title": attributes.get("title"),
-        "alias": attributes.get("alias"),
         "state": attributes.get("state") == 1 and "[1] / Published"
         or (attributes.get("state") == 0 and "[0] / Unpublished"
             or (attributes.get("state") == -2 and "[-2] / Trashed"
