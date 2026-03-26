@@ -793,7 +793,62 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
                 "required": ["newsfeed_id"]
             }
         }
-    }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_templates",
+            "description": "Hämta alla mallar från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_template",
+            "description": "Hämta detaljer för en specifik mall baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "Mallens ID"}
+                },
+                "required": ["template_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_template",
+            "description": "Redigera en befintlig mall i Joomla baserat på dess ID med ny titel och innehåll",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "Mallens ID"},
+                    "title": {"type": "string", "description": "Ny titel för mallen"},
+                    "content": {"type": "string", "description": "Nytt innehåll för mallen"}
+                },
+                "required": ["template_id", "title", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_template",
+            "description": "Ta bort en mall från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "Mallens ID"}
+                },
+                "required": ["template_id"]
+            }
+        }
+    },
 
 ]
 
