@@ -34,6 +34,22 @@ function addBotMessage(text, options = {}) {
     botMsg.className = 'chat-msg bot';
     if (options.pending) {
         botMsg.classList.add('pending');
+        // Visa endast animationen "Tänker..." utan text
+        const loaderWrap = document.createElement('span');
+        loaderWrap.className = 'ai-thinking-wrap';
+        const loaderText = document.createElement('span');
+        loaderText.textContent = 'Tänker';
+        loaderText.className = 'ai-thinking-text';
+        const loader = document.createElement('span');
+        loader.className = 'ai-thinking-loader';
+        loader.innerHTML = '<span></span><span></span><span></span>';
+        loaderWrap.appendChild(loaderText);
+        loaderWrap.appendChild(loader);
+        botMsg.appendChild(loaderWrap);
+        // Hoppa över texten nedan när pending
+        chatlog.appendChild(botMsg);
+        scrollChatToBottom();
+        return botMsg;
     }
     const textSpan = document.createElement('span');
     textSpan.className = 'msg-text';
