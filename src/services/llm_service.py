@@ -652,7 +652,76 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
-
+    {
+        "type": "function",
+        "function": {
+            "name": "get_modules",
+            "description": "Hämta alla moduler från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_module",
+            "description": "Hämta detaljer för en specifik modul baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_id": {"type": "integer", "description": "Modulens ID"}
+                },
+                "required": ["module_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_module",
+            "description": "Skapa en ny modul i Joomla med den givna titeln och innehållet",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Modulens titel"},
+                    "content": {"type": "string", "description": "Modulens innehåll/text"}
+                },
+                "required": ["title", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_module",
+            "description": "Redigera en befintlig modul i Joomla baserat på dess ID med ny titel och innehåll",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_id": {"type": "integer", "description": "Modulens ID"},
+                    "title": {"type": "string", "description": "Ny titel för modulen"},
+                    "content": {"type": "string", "description": "Nytt innehåll för modulen"}
+                },
+                "required": ["module_id", "title", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_module",
+            "description": "Ta bort en modul från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_id": {"type": "integer", "description": "Modulens ID"}
+                },
+                "required": ["module_id"]
+            }
+        }
+    },
 ]
 
 
