@@ -13,6 +13,7 @@ from src.tools import (
     tag_tool, user_tool,
     message_tool,
     module_tool,
+    newsfeed_tool,
 )
 
 """
@@ -40,6 +41,7 @@ DESTRUCTIVE_TOOLS = {
     "delete_redirect",
     "delete_message",
     "delete_module",
+    "delete_newsfeed",
 }
 
 SENSITIVE_LOG_FIELDS = {
@@ -128,6 +130,12 @@ TOOL_MAP = {
     "create_module": lambda args: module_tool.create_module(**args),
     "edit_module": lambda args: module_tool.edit_module(**args),
     "delete_module": lambda args: module_tool.delete_module(**args),
+
+    "get_newsfeeds": lambda args: newsfeed_tool.get_newsfeeds(),
+    "get_newsfeed": lambda args: newsfeed_tool.get_newsfeed(**args),
+    "create_newsfeed": lambda args: newsfeed_tool.create_newsfeed(**args),
+    "edit_newsfeed": lambda args: newsfeed_tool.edit_newsfeed(**args),
+    "delete_newsfeed": lambda args: newsfeed_tool.delete_newsfeed(**args),
 }
 
 
