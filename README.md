@@ -79,14 +79,16 @@ External MCP client
      ├── routes/
      │   └── chat_router.py
      ├── services/
+     │   ├── joomla_API/
+     │   │    └── *_service.py
      │   ├── __init__.py
-     │   └── *_service.py
+     │   └── llm_service.py
      ├── tools/
      │   ├── __init__.py
-     │   └── *__tool.py
+     │   └── *_tool.py
      └── utils/
-          ├── config.py
-          └── formatters.py
+         ├── config.py
+         └── formatters.py
 ```
 
 ## Getting Started
