@@ -849,6 +849,76 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_languages",
+            "description": "Hämta alla språk från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_language",
+            "description": "Hämta detaljer för ett specifikt språk baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "language_id": {"type": "integer", "description": "Språkets ID"}
+                },
+                "required": ["language_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_language",
+            "description": "Skapa ett nytt språk i Joomla med den givna titeln och koden",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Språkets titel"},
+                    "code": {"type": "string", "description": "Språkets kod (t.ex. 'en-GB')"}
+                },
+                "required": ["title", "code"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_language",
+            "description": "Redigera ett befintligt språk i Joomla baserat på dess ID med ny titel och kod",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "language_id": {"type": "integer", "description": "Språkets ID"},
+                    "title": {"type": "string", "description": "Ny titel för språket"},
+                    "code": {"type": "string", "description": "Ny kod för språket (t.ex. 'en-GB')"}
+                },
+                "required": ["language_id", "title", "code"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_language",
+            "description": "Ta bort ett språk från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "language_id": {"type": "integer", "description": "Språkets ID"}
+                },
+                "required": ["language_id"]
+            }
+        }
+    },
 
 ]
 
