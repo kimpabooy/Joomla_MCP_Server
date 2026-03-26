@@ -18,17 +18,13 @@ Browser UI (templates/index.html + static/chat.js)
           -> src/routes/chat_router.py
                -> src/services/llm_service.py (OpenAI + tool schema)
                -> TOOL_MAP dispatch
-               -> src/tools/article_tools.py
-               -> src/tools/user_tools.py
-               -> src/tools/menu_tools.py
-               -> src/tools/tag_tools.py
-               -> src/tools/redirect_tools.py
+               -> src/tools/*_tool.py
                     -> respective src/services/*_service.py
                          -> Joomla 4 Core API
 
 External MCP client
      -> /mcp (FastMCP mount in main.py)
-          -> src/tools/article_tools.py etc.
+          -> src/tools/*_tool.py etc.
                -> respective src/services/*_service.py
                     -> Joomla 4 Core API
 ```
@@ -37,12 +33,12 @@ External MCP client
 
 - **llm_service.py**: Describes available tools according to the OpenAI function-calling schema.
 - **chat_router.py**: Orchestrates the flow, handles confirmations, and maps tool names to the correct Python function.
-- **tools/\*\_tools.py**: Implements domain-specific operations (articles, users, menus, etc.).
+- **tools/\*\_tool.py**: Implements domain-specific operations (articles, users, menus, etc.).
 - **services/\*\_service.py**: Communicates directly with the Joomla 4 Core API.
 
 ## Adding a New Tool
 
-1. Implement the function in the appropriate `src/tools/*_tools.py` file.
+1. Implement the function in the appropriate `src/tools/*_tool.py` file.
 2. Add a schema entry in `OPENAI_TOOL_SCHEMAS` in `src/services/llm_service.py`.
 3. Add a dispatch entry in `TOOL_MAP` in `src/routes/chat_router.py`.
 4. If the tool is destructive, add its name to `DESTRUCTIVE_TOOLS` in `chat_router.py`.
@@ -84,20 +80,10 @@ External MCP client
      │   └── chat_router.py
      ├── services/
      │   ├── __init__.py
-     │   ├── articles_service.py
-     │   ├── joomla_service.py
-     │   ├── llm_service.py
-     │   ├── menus_service.py
-     │   ├── redirects_service.py
-     │   ├── tags_service.py
-     │   └── users_service.py
+     │   └── *_service.py
      ├── tools/
-     │   ├── article_tools.py
-     │   ├── menu_tools.py
-     │   ├── mcp_tools.py
-     │   ├── redirect_tools.py
-     │   ├── tag_tools.py
-     │   └── user_tools.py
+     │   ├── __init__.py
+     │   └── *__tool.py
      └── utils/
           ├── config.py
           └── formatters.py
