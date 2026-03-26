@@ -722,6 +722,79 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_newsfeeds",
+            "description": "Hämta alla nyhetsflöden från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_newsfeed",
+            "description": "Hämta detaljer för ett specifikt nyhetsflöde baserat på dess ID",
+            "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "newsfeed_id": {"type": "integer", "description": "Nyhetsflödets ID"}
+                    },
+                "required": ["newsfeed_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_newsfeed",
+            "description": "Skapa ett nytt nyhetsflöde i Joomla med den givna titeln, länken och publiceringsstatus",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Nyhetsflödets titel"},
+                    "link": {"type": "string", "description": "Nyhetsflödets länk"},
+                    "published": {"type": "boolean", "description": "Om nyhetsflödet är publicerat"}
+                },
+                "required": ["title", "link", "published"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_newsfeed",
+            "description": "Redigera ett befintligt nyhetsflöde i Joomla baserat på dess ID med ny titel, länk och publiceringsstatus",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "newsfeed_id": {"type": "integer", "description": "Nyhetsflödets ID"},
+                    "title": {"type": "string", "description": "Ny titel för nyhetsflödet"},
+                    "link": {"type": "string", "description": "Ny länk för nyhetsflödet"},
+                    "published": {"type": "boolean", "description": "Om nyhetsflödet är publicerat"}
+                },
+                "required": ["newsfeed_id", "title", "link", "published"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_newsfeed",
+            "description": "Ta bort ett nyhetsflöde från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "newsfeed_id": {"type": "integer", "description": "Nyhetsflödets ID"}
+                },
+                "required": ["newsfeed_id"]
+            }
+        }
+    }
+
 ]
 
 
