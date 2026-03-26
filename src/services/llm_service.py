@@ -17,7 +17,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "list_articles",
+            "name": "get_articles",
             "description": "Lista alla artiklar från Joomla",
             "parameters": {"type": "object", "properties": {}}
         }
@@ -39,7 +39,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "publish",
+            "name": "publish_article",
             "description": "Publicera en artikel baserat på ID",
             "parameters": {
                 "type": "object",
@@ -53,7 +53,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "unpublish",
+            "name": "unpublish_article",
             "description": "Avpublicera en artikel baserat på ID",
             "parameters": {
                 "type": "object",
@@ -67,7 +67,7 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
     {
         "type": "function",
         "function": {
-            "name": "trash",
+            "name": "trash_article",
             "description": "Flytta en artikel baserat på ID till papperskorgen",
             "parameters": {
                 "type": "object",
@@ -581,6 +581,74 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
                     "redirect_id": {"type": "integer", "description": "Omdirigeringens ID"}
                 },
                 "required": ["redirect_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_messages",
+            "description": "Hämta alla meddelanden från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_message",
+            "description": "Hämta detaljer för ett specifikt meddelande baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message_id": {"type": "integer", "description": "Meddelandets ID"}
+                },
+                "required": ["message_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_message",
+            "description": "Skapa ett nytt meddelande i Joomla med den givna texten",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string", "description": "Meddelandets text/innehåll"}
+                },
+                "required": ["text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_message",
+            "description": "Redigera ett befintligt meddelande i Joomla baserat på dess ID med ny text",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message_id": {"type": "integer", "description": "Meddelandets ID"},
+                    "text": {"type": "string", "description": "Ny text/innehåll för meddelandet"}
+                },
+                "required": ["message_id", "text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_message",
+            "description": "Ta bort ett meddelande från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message_id": {"type": "integer", "description": "Meddelandets ID"}
+                },
+                "required": ["message_id"]
             }
         }
     },
