@@ -100,6 +100,11 @@ h1 {
     min-height: 460px;
 }
 
+#endpoints-box p {
+    margin-top: 90%;
+    color: var(--muted);
+}
+
 #response-box h2,
 #endpoints-box h2 {
     margin-top: 0;
@@ -249,6 +254,9 @@ h1 {
 .msg-text li {
     margin-bottom: 4px;
     line-height: 1.4;
+}
+.msg-text a {
+    color: #e4f6ff;
 }
 .msg-text strong {
     color: #fff;
