@@ -346,8 +346,10 @@ def root(request: Request):
 
 
 @router.post("/chat")
-def chat(body: dict):
+def chat(request: Request, body: dict):
     """Receives natural language input, lets the LLM choose the right tool with server-side guardrails."""
+    session = request.session
+
     _cleanup_expired_confirmations()
     message = body.get("message", "")
 
@@ -390,15 +392,21 @@ def chat(body: dict):
     if not isinstance(message, str) or not message.strip():
         return {"error": "Meddelande saknas."}
 
-    messages = [
-        SYSTEM_MESSAGE,
-        {"role": "user", "content": message},
-    ]
+    # Hämta historiken från sessionen för den aktuella användaren, eller starta en ny om den inte finns.
+    chat_history = session.get("history", [])
+    chat_history.append({"role": "user", "content": message})
 
-    # Kör agent-loopen som låter LLM iterativt kalla verktyg tills. Logga användarens fråga.
+    # Skicka hela historiken till agent-loopen så att LLM har full kontext.
+    messages = [SYSTEM_MESSAGE] + chat_history
     try:
         logger.info(f"Användarfråga: {message}")
-        return _run_agent_loop(messages)
+        agent_response = _run_agent_loop(messages)
+        # Lägg endast till assistant-svar (text) i historiken, inte tool-calls
+        if "response" in agent_response and agent_response["response"]:
+            chat_history.append(
+                {"role": "assistant", "content": agent_response["response"]})
+            session["history"] = chat_history
+        return agent_response
     except Exception as e:
         logger.exception("LLM-fel")
         return {"response": f"AI-tjänsten är inte tillgänglig just nu: {type(e).__name__}"}
