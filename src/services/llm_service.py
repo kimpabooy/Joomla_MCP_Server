@@ -919,6 +919,78 @@ OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_categories",
+            "description": "Hämta alla kategorier från Joomla",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_category",
+            "description": "Hämta detaljer för en specifik kategori baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category_id": {"type": "integer", "description": "Kategori-ID"}
+                },
+                "required": ["category_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_category",
+            "description": "Skapa en ny kategori i Joomla med den givna titeln, föräldra-ID och publiceringsstatus",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Kategoriens titel"},
+                    "parent_id": {"type": "integer", "description": "Föräldrakategori-ID (0 för ingen förälder)"},
+                    "published": {"type": "boolean", "description": "Om kategorin är publicerad"}
+                },
+                "required": ["title", "parent_id", "published"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "edit_category",
+            "description": "Redigera en befintlig kategori i Joomla baserat på dess ID med ny titel, föräldra-ID och publiceringsstatus",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category_id": {"type": "integer", "description": "Kategori-ID"},
+                    "title": {"type": "string", "description": "Ny titel för kategorin"},
+                    "parent_id": {"type": "integer", "description": "Nytt föräldrakategori-ID (0 för ingen förälder)"},
+                    "published": {"type": "boolean", "description": "Om kategorin är publicerad"}
+                },
+                "required": ["category_id", "title", "parent_id", "published"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_category",
+            "description": "Ta bort en kategori från Joomla baserat på dess ID",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category_id": {"type": "integer", "description": "Kategori-ID"}
+                },
+                "required": ["category_id"]
+            }
+        }
+    }
 
 ]
 
