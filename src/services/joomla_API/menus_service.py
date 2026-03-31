@@ -2,14 +2,16 @@
 Service functions for Joomla menus.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_menus(token: str) -> List[Dict[str, Any]]:
     """Fetches all menus from Joomla and returns a list of formatted menu data."""
-    url = f"{JOOMLA_URL}/menus"
+    url = f"{JOOMLA_API_URL}/menus"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_menus(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_menu(token: str, menu_id: int) -> Dict[str, Any]:
     """Fetches details for a specific menu based on its ID."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_menu(token: str, menu_id: int) -> Dict[str, Any]:
 
 def create_joomla_menu(token: str, title: str, alias: str) -> Dict[str, Any]:
     """Creates a new menu in Joomla with the given title and alias."""
-    url = f"{JOOMLA_URL}/menus"
+    url = f"{JOOMLA_API_URL}/menus"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -47,7 +49,7 @@ def create_joomla_menu(token: str, title: str, alias: str) -> Dict[str, Any]:
 
 def edit_joomla_menu(token: str, menu_id: int, title: str, alias: str) -> Dict[str, Any]:
     """Edits an existing menu in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -64,7 +66,7 @@ def edit_joomla_menu(token: str, menu_id: int, title: str, alias: str) -> Dict[s
 
 def delete_joomla_menu(token: str, menu_id: int) -> Dict[str, Any]:
     """Deletes a menu from Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 
@@ -82,7 +84,7 @@ def delete_joomla_menu(token: str, menu_id: int) -> Dict[str, Any]:
 
 def get_joomla_menu_items(token: str, menu_id: int) -> List[Dict[str, Any]]:
     """Fetches all menu items for a specific menu based on its ID."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}/items"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}/items"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -92,7 +94,7 @@ def get_joomla_menu_items(token: str, menu_id: int) -> List[Dict[str, Any]]:
 
 def get_joomla_menu_item(token: str, menu_id: int, item_id: int) -> Dict[str, Any]:
     """Fetches details for a specific menu item based on its ID and the menu it belongs to."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}/items/{item_id}"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}/items/{item_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -102,7 +104,7 @@ def get_joomla_menu_item(token: str, menu_id: int, item_id: int) -> Dict[str, An
 
 def create_joomla_menu_item(token: str, menu_id: int, title: str, alias: str, link: str) -> Dict[str, Any]:
     """Creates a new menu item under a specific menu in Joomla."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}/items"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}/items"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -121,7 +123,7 @@ def create_joomla_menu_item(token: str, menu_id: int, title: str, alias: str, li
 
 def edit_joomla_menu_item(token: str, menu_id: int, item_id: int, title: str, alias: str, link: str) -> Dict[str, Any]:
     """Edits an existing menu item under a specific menu in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}/items/{item_id}"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}/items/{item_id}"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -139,7 +141,7 @@ def edit_joomla_menu_item(token: str, menu_id: int, item_id: int, title: str, al
 
 def delete_joomla_menu_item(token: str, menu_id: int, item_id: int) -> Dict[str, Any]:
     """Deletes a menu item from a specific menu in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/menus/{menu_id}/items/{item_id}"
+    url = f"{JOOMLA_API_URL}/menus/{menu_id}/items/{item_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 

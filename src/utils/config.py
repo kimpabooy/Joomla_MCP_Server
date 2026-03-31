@@ -6,9 +6,6 @@ import os
 from fastmcp import FastMCP
 mcp = FastMCP("Joomla MCP Server")
 
-JOOMLA_URL = os.getenv("JOOMLA_URL")
-CONTENT_TYPE = "application/json"
-ACCEPT = "*/*"
 
 def get_token() -> str:
     token = os.getenv("JOOMLA_API_TOKEN")
@@ -20,6 +17,6 @@ def get_token() -> str:
 def get_headers(token: str) -> dict:
     return {
         "Authorization": f"Bearer {token}",
-        "Content-Type": CONTENT_TYPE,
-        "Accept": ACCEPT
+        "Content-Type": "application/json",
+        "Accept": "*/*"
     }

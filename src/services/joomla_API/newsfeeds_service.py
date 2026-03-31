@@ -2,14 +2,16 @@
 Service functions for Joomla newsfeeds.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_newsfeeds(token: str) -> List[Dict[str, Any]]:
     """Fetches all newsfeeds from Joomla and returns a list of formatted newsfeed data."""
-    url = f"{JOOMLA_URL}/newsfeeds"
+    url = f"{JOOMLA_API_URL}/newsfeeds"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_newsfeeds(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_newsfeed(token: str, newsfeed_id: int) -> Dict[str, Any]:
     """Fetches details for a specific newsfeed based on its ID."""
-    url = f"{JOOMLA_URL}/newsfeeds/{newsfeed_id}"
+    url = f"{JOOMLA_API_URL}/newsfeeds/{newsfeed_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_newsfeed(token: str, newsfeed_id: int) -> Dict[str, Any]:
 
 def create_joomla_newsfeed(token: str, title: str, link: str, published: bool) -> Dict[str, Any]:
     """Creates a new newsfeed in Joomla with the given title, link, and published state."""
-    url = f"{JOOMLA_URL}/newsfeeds"
+    url = f"{JOOMLA_API_URL}/newsfeeds"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -47,7 +49,7 @@ def create_joomla_newsfeed(token: str, title: str, link: str, published: bool) -
 
 def edit_joomla_newsfeed(token: str, newsfeed_id: int, title: str, link: str, published: bool) -> Dict[str, Any]:
     """Edits an existing newsfeed in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/newsfeeds/{newsfeed_id}"
+    url = f"{JOOMLA_API_URL}/newsfeeds/{newsfeed_id}"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -65,7 +67,7 @@ def edit_joomla_newsfeed(token: str, newsfeed_id: int, title: str, link: str, pu
 
 def delete_joomla_newsfeed(token: str, newsfeed_id: int) -> Dict[str, Any]:
     """Deletes an existing newsfeed in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/newsfeeds/{newsfeed_id}"
+    url = f"{JOOMLA_API_URL}/newsfeeds/{newsfeed_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 

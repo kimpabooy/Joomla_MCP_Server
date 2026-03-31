@@ -2,14 +2,16 @@
 Service functions for Joomla categories.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
-import requests
 
+import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 def get_joomla_categories(token: str) -> List[Dict[str, Any]]:
     """Fetches all categories from Joomla and returns a list of formatted category data."""
-    url = f"{JOOMLA_URL}/banners/categories"
+    url = f"{JOOMLA_API_URL}/banners/categories"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_categories(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_category(token: str, category_id: int) -> Dict[str, Any]:
     """Fetches details for a specific category based on its ID."""
-    url = f"{JOOMLA_URL}/banners/categories/{category_id}"
+    url = f"{JOOMLA_API_URL}/banners/categories/{category_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_category(token: str, category_id: int) -> Dict[str, Any]:
 
 def create_joomla_category(token: str, title: str, parent_id: int, published: bool) -> Dict[str, Any]:
     """Creates a new category in Joomla with the given title, parent ID, and published state."""
-    url = f"{JOOMLA_URL}/banners/categories"
+    url = f"{JOOMLA_API_URL}/banners/categories"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -47,7 +49,7 @@ def create_joomla_category(token: str, title: str, parent_id: int, published: bo
 
 def edit_joomla_category(token: str, category_id: int, title: str, parent_id: int, published: bool) -> Dict[str, Any]:
     """Edits an existing category in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/banners/categories/{category_id}"
+    url = f"{JOOMLA_API_URL}/banners/categories/{category_id}"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -65,7 +67,7 @@ def edit_joomla_category(token: str, category_id: int, title: str, parent_id: in
 
 def delete_joomla_category(token: str, category_id: int) -> None:
     """Deletes a category from Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/banners/categories/{category_id}"
+    url = f"{JOOMLA_API_URL}/banners/categories/{category_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 

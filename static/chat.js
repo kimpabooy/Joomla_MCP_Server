@@ -294,3 +294,20 @@ function showCreateModal() {
         textarea.focus();
     };
 }
+
+// Joomla status indicator updater
+async function updateJoomlaStatus() {
+    try {
+        const res = await fetch('/joomla-status');
+        const data = await res.json();
+        document.getElementById('status-light').style.background = data.online ? 'green' : 'red';
+        document.getElementById('joomla-link').href = data.url;
+        document.getElementById('joomla-link').textContent = data.online ? 'Joomla Online' : 'Joomla Offline';
+    } catch (e) {
+        console.error(e);
+        document.getElementById('status-light').style.background = 'red';
+        document.getElementById('joomla-link').textContent = 'Joomla Offline';
+    }
+}
+setInterval(updateJoomlaStatus, 30000); // Uppdatera var 30:e sekund
+updateJoomlaStatus();
