@@ -2,14 +2,16 @@
 Service functions for Joomla redirects.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_redirects(token: str) -> List[Dict[str, Any]]:
     """Fetches all redirects from Joomla and returns a list of formatted redirect data."""
-    url = f"{JOOMLA_URL}/redirects"
+    url = f"{JOOMLA_API_URL}/redirects"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_redirects(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
     """Fetches details for a specific redirect based on its ID."""
-    url = f"{JOOMLA_URL}/redirects/{redirect_id}"
+    url = f"{JOOMLA_API_URL}/redirects/{redirect_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
 
 def create_joomla_redirect(token: str, source: str, destination: str) -> Dict[str, Any]:
     """Creates a new redirect in Joomla with the given source and destination URLs."""
-    url = f"{JOOMLA_URL}/redirects"
+    url = f"{JOOMLA_API_URL}/redirects"
     headers = get_headers(token)
     data = {
         "source": source,
@@ -47,7 +49,7 @@ def create_joomla_redirect(token: str, source: str, destination: str) -> Dict[st
 
 def edit_joomla_redirect(token: str, redirect_id: int, source: str, destination: str) -> Dict[str, Any]:
     """Edits an existing redirect in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/redirects/{redirect_id}"
+    url = f"{JOOMLA_API_URL}/redirects/{redirect_id}"
     headers = get_headers(token)
     data = {
         "source": source,
@@ -65,7 +67,7 @@ def edit_joomla_redirect(token: str, redirect_id: int, source: str, destination:
 
 def delete_joomla_redirect(token: str, redirect_id: int) -> Dict[str, Any]:
     """Deletes a redirect from Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/redirects/{redirect_id}"
+    url = f"{JOOMLA_API_URL}/redirects/{redirect_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 

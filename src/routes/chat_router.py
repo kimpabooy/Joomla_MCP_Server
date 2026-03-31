@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
+from os import getenv
 from src.services.llm_service import ask_llm
 from src.tools import (
     article_tool,
@@ -18,6 +19,8 @@ from src.tools import (
     language_tool,
     category_tool,
 )
+import requests
+
 
 """
 This module defines the FastAPI router for handling chat interactions.
@@ -28,6 +31,8 @@ The module also maintains a temporary in-memory store for pending confirmations,
 router = APIRouter()
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
+url = getenv("JOOMLA_SITE_URL")
+
 
 CONFIRMATION_TTL_SECONDS = 300
 MAX_TOOL_ITERATIONS = 10
@@ -410,3 +415,15 @@ def chat(request: Request, body: dict):
     except Exception as e:
         logger.exception("LLM-fel")
         return {"response": f"AI-tjänsten är inte tillgänglig just nu: {type(e).__name__}"}
+
+
+@router.get("/joomla-status")
+def joomla_status():
+    if not url:
+        return {"online": False, "url": url}
+    try:
+        response = requests.get(url)
+        online = response.status_code == 200
+    except Exception:
+        online = False
+    return {"online": online, "url": url}

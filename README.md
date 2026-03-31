@@ -45,11 +45,12 @@ External MCP client
 
 ## Endpoints
 
-| Method | Endpoint | Purpose                                                        |
-| ------ | -------- | -------------------------------------------------------------- |
-| GET    | `/`      | Renders the chat UI (index.html)                               |
-| POST   | `/chat`  | Receives prompt, lets LLM choose tool, and performs Joomla ops |
-| ASGI   | `/mcp`   | Exposes tools for external MCP clients                         |
+| Method | Endpoint         | Purpose                                                        |
+| ------ | ---------------- | -------------------------------------------------------------- |
+| GET    | `/`              | Renders the chat UI (index.html)                               |
+| POST   | `/chat`          | Receives prompt, lets LLM choose tool, and performs Joomla ops |
+| GET    | `/joomla-status` | Returns JSON with online-status and link for yout joomla-site  |
+| ASGI   | `/mcp`           | Exposes tools for external MCP clients                         |
 
 ## Logging
 
@@ -80,6 +81,7 @@ External MCP client
      │   └── chat_router.py
      ├── services/
      │   ├── joomla_API/
+     |   |    ├── __init__.py
      │   │    └── *_service.py
      │   ├── __init__.py
      │   └── llm_service.py
@@ -110,8 +112,9 @@ uv sync
 Create `.env` in the project root:
 
 ```env
-JOOMLA_URL=your_joomla_url_here
-JOOMLA_API_TOKEN=your_token_here
+JOOMLA_API_URL=your_joomla_api_url_here
+JOOMLA_API_TOKEN=your_joomla_api_token_here
+JOOMLA_SITE_URL=your_joomla_site_url_here
 OPENAI_API_KEY=your_openai_key_here
 ```
 

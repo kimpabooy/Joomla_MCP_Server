@@ -2,14 +2,16 @@
 Service functions for Joomla users.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_users(token: str) -> List[Dict[str, Any]]:
     """Fetches all users from Joomla and returns a list of formatted user data."""
-    url = f"{JOOMLA_URL}/users"
+    url = f"{JOOMLA_API_URL}/users"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_users(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_user(token: str, user_id: int) -> Dict[str, Any]:
     """Fetches details for a specific user based on their ID."""
-    url = f"{JOOMLA_URL}/users/{user_id}"
+    url = f"{JOOMLA_API_URL}/users/{user_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_user(token: str, user_id: int) -> Dict[str, Any]:
 
 def create_joomla_user(token: str, name: str, username: str, email: str, password: str) -> Dict[str, Any]:
     """Creates a new user in Joomla with the given details."""
-    url = f"{JOOMLA_URL}/users"
+    url = f"{JOOMLA_API_URL}/users"
     headers = get_headers(token)
     data = {
         "name": name,
@@ -49,7 +51,7 @@ def create_joomla_user(token: str, name: str, username: str, email: str, passwor
 
 def delete_joomla_user(token: str, user_id: int) -> Dict[str, Any]:
     """Deletes a user from Joomla based on their ID."""
-    url = f"{JOOMLA_URL}/users/{user_id}"
+    url = f"{JOOMLA_API_URL}/users/{user_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 
@@ -67,7 +69,7 @@ def delete_joomla_user(token: str, user_id: int) -> Dict[str, Any]:
 
 def edit_joomla_user(token: str, user_id: int, name: str, username: str, email: str) -> Dict[str, Any]:
     """Edits an existing user in Joomla based on their ID."""
-    url = f"{JOOMLA_URL}/users/{user_id}"
+    url = f"{JOOMLA_API_URL}/users/{user_id}"
     headers = get_headers(token)
     data = {
         "name": name,

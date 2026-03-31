@@ -2,14 +2,16 @@
 Service functions for Joomla templates.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_templates(token: str) -> List[Dict[str, Any]]:
     """Fetches all templates from Joomla and returns a list of formatted template data."""
-    url = f"{JOOMLA_URL}/templates"
+    url = f"{JOOMLA_API_URL}/templates"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_templates(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_template(token: str, template_id: int) -> Dict[str, Any]:
     """Fetches details for a specific template based on its ID."""
-    url = f"{JOOMLA_URL}/templates/{template_id}"
+    url = f"{JOOMLA_API_URL}/templates/{template_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_template(token: str, template_id: int) -> Dict[str, Any]:
 
 def create_joomla_template(token: str, name: str, client_id: int, home: bool) -> Dict[str, Any]:
     """Creates a new template in Joomla with the given name and client ID."""
-    url = f"{JOOMLA_URL}/templates"
+    url = f"{JOOMLA_API_URL}/templates"
     headers = get_headers(token)
     data = {
         "name": name,
@@ -47,7 +49,7 @@ def create_joomla_template(token: str, name: str, client_id: int, home: bool) ->
 
 def edit_joomla_template(token: str, template_id: int, name: str, client_id: int, home: bool) -> Dict[str, Any]:
     """Edits an existing template in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/templates/{template_id}"
+    url = f"{JOOMLA_API_URL}/templates/{template_id}"
     headers = get_headers(token)
     data = {
         "name": name,
@@ -65,7 +67,7 @@ def edit_joomla_template(token: str, template_id: int, name: str, client_id: int
 
 def delete_joomla_template(token: str, template_id: int) -> Dict[str, Any]:
     """Deletes a template in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/templates/{template_id}"
+    url = f"{JOOMLA_API_URL}/templates/{template_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from src.config.logging_config import configure_logging
 from src.routes.chat_router import router as chat_router
+
 from starlette.middleware.sessions import SessionMiddleware
 import secrets
 import uvicorn
@@ -23,11 +24,9 @@ mcp_app = mcp.http_app()
 app = FastAPI(lifespan=mcp_app.lifespan)
 
 # Add session middleware for managing user sessions in the chat interface.
-# The secret key is generated securely using secrets.token_hex(16) to ensure session data integrity and security.
-# The key is generated at runtime, which means sessions will be lost on server restart, but this is acceptable for our use case.
+# The secret key is generated at runtime and securely using secrets.token_hex(16) to ensure session data integrity and security.
 app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(16))
 
-# Add middleware, routes, and other FastAPI configurations here if needed.
 
 # Mount static files and include the chat router.
 app.mount("/static", StaticFiles(directory="static"), name="static")

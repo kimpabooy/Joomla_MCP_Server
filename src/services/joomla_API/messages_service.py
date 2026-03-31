@@ -2,14 +2,16 @@
 Service functions for Joomla messages.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_messages(token: str) -> List[Dict[str, Any]]:
     """Fetches all messages from Joomla and returns a list of formatted message data."""
-    url = f"{JOOMLA_URL}/messages"
+    url = f"{JOOMLA_API_URL}/messages"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_messages(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_message(token: str, message_id: int) -> Dict[str, Any]:
     """Fetches details for a specific message based on its ID."""
-    url = f"{JOOMLA_URL}/messages/{message_id}"
+    url = f"{JOOMLA_API_URL}/messages/{message_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_message(token: str, message_id: int) -> Dict[str, Any]:
 
 def create_joomla_message(token: str, name: str, email: str, subject: str, body: str) -> Dict[str, Any]:
     """Creates a new message in Joomla with the given subject and body."""
-    url = f"{JOOMLA_URL}/messages"
+    url = f"{JOOMLA_API_URL}/messages"
     headers = get_headers(token)
     data = {
         "name": name,
@@ -48,7 +50,7 @@ def create_joomla_message(token: str, name: str, email: str, subject: str, body:
 
 def edit_joomla_message(token: str, message_id: int, name: str, email: str, subject: str, body: str) -> Dict[str, Any]:
     """Edits an existing message in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/messages/{message_id}"
+    url = f"{JOOMLA_API_URL}/messages/{message_id}"
     headers = get_headers(token)
     data = {
         "name": name,
@@ -67,7 +69,7 @@ def edit_joomla_message(token: str, message_id: int, name: str, email: str, subj
 
 def delete_joomla_message(token: str, message_id: int) -> Dict[str, Any]:
     """Deletes a message from Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/messages/{message_id}"
+    url = f"{JOOMLA_API_URL}/messages/{message_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 

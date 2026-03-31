@@ -2,14 +2,16 @@
 Service functions for Joomla tags.
 """
 
-from src.utils.config import JOOMLA_URL, get_headers
-from typing import Any, Dict, List
 import requests
+import os
+from src.utils.config import get_headers
+from typing import Any, Dict, List
+JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
 
 
 def get_joomla_tags(token: str) -> List[Dict[str, Any]]:
     """Fetches all tags from Joomla and returns a list of formatted tag data."""
-    url = f"{JOOMLA_URL}/content/tags"
+    url = f"{JOOMLA_API_URL}/content/tags"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -19,7 +21,7 @@ def get_joomla_tags(token: str) -> List[Dict[str, Any]]:
 
 def get_joomla_tag(token: str, tag_id: int) -> Dict[str, Any]:
     """Fetches details for a specific tag based on its ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -29,7 +31,7 @@ def get_joomla_tag(token: str, tag_id: int) -> Dict[str, Any]:
 
 def create_joomla_tag(token: str, title: str, alias: str) -> Dict[str, Any]:
     """Creates a new tag in Joomla with the given title and alias."""
-    url = f"{JOOMLA_URL}/content/tags"
+    url = f"{JOOMLA_API_URL}/content/tags"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -47,7 +49,7 @@ def create_joomla_tag(token: str, title: str, alias: str) -> Dict[str, Any]:
 
 def edit_joomla_tag(token: str, tag_id: int, title: str, alias: str) -> Dict[str, Any]:
     """Edits an existing tag in Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}"
     headers = get_headers(token)
     data = {
         "title": title,
@@ -64,7 +66,7 @@ def edit_joomla_tag(token: str, tag_id: int, title: str, alias: str) -> Dict[str
 
 def delete_joomla_tag(token: str, tag_id: int) -> Dict[str, Any]:
     """Deletes a tag from Joomla based on its ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 
@@ -82,7 +84,7 @@ def delete_joomla_tag(token: str, tag_id: int) -> Dict[str, Any]:
 
 def get_joomla_tag_items(token: str, tag_id: int) -> List[Dict[str, Any]]:
     """Fetches all items associated with a specific tag based on its ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}/items"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}/items"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -92,7 +94,7 @@ def get_joomla_tag_items(token: str, tag_id: int) -> List[Dict[str, Any]]:
 
 def get_joomla_tag_item(token: str, tag_id: int, item_id: int) -> Dict[str, Any]:
     """Fetches details for a specific item associated with a tag based on the tag ID and item ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}/items/{item_id}"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}/items/{item_id}"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
 
@@ -102,7 +104,7 @@ def get_joomla_tag_item(token: str, tag_id: int, item_id: int) -> Dict[str, Any]
 
 def create_joomla_tag_item(token: str, tag_id: int, item_id: int) -> Dict[str, Any]:
     """Associates an item with a specific tag based on the tag ID and item ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}/items"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}/items"
     headers = get_headers(token)
     data = {
         "item_id": item_id
@@ -118,7 +120,7 @@ def create_joomla_tag_item(token: str, tag_id: int, item_id: int) -> Dict[str, A
 
 def edit_joomla_tag_item(token: str, tag_id: int, item_id: int, new_item_id: int) -> Dict[str, Any]:
     """Updates the association of an item with a specific tag based on the tag ID and item ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}/items/{item_id}"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}/items/{item_id}"
     headers = get_headers(token)
     data = {
         "item_id": new_item_id
@@ -134,7 +136,7 @@ def edit_joomla_tag_item(token: str, tag_id: int, item_id: int, new_item_id: int
 
 def delete_joomla_tag_item(token: str, tag_id: int, item_id: int) -> Dict[str, Any]:
     """Removes the association of an item with a specific tag based on the tag ID and item ID."""
-    url = f"{JOOMLA_URL}/content/tags/{tag_id}/items/{item_id}"
+    url = f"{JOOMLA_API_URL}/content/tags/{tag_id}/items/{item_id}"
     headers = get_headers(token)
     response = requests.delete(url, headers=headers)
 
