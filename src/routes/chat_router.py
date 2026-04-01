@@ -2,6 +2,7 @@ import logging
 import json
 import time
 from datetime import datetime
+from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
@@ -31,7 +32,8 @@ The module also maintains a temporary in-memory store for pending confirmations,
 router = APIRouter()
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
-url = getenv("JOOMLA_SITE_URL")
+joomla_site_url = getenv("JOOMLA_SITE_URL")
+joomla_status_check_url = getenv("JOOMLA_SITE_CHECK_URL") or joomla_site_url
 
 
 CONFIRMATION_TTL_SECONDS = 300
@@ -419,11 +421,31 @@ def chat(request: Request, body: dict):
 
 @router.get("/joomla-status")
 def joomla_status():
-    if not url:
-        return {"online": False, "url": url}
-    try:
-        response = requests.get(url)
-        online = response.status_code == 200
-    except Exception:
-        online = False
-    return {"online": online, "url": url}
+    # Check the status of the Joomla site public URL or a specific status check URL if provided. This can help users diagnose connectivity issues.
+    check_url = joomla_status_check_url or joomla_site_url
+    if not check_url:
+        return {"online": False, "url": joomla_site_url}
+
+    # Determine the URL to display in the response based on the environment variables. We prioritize a specific status check URL if provided, but fall back to the main site URL for display purposes if available.
+    display_url = joomla_site_url or check_url
+
+    # If the configured URL uses localhost inside a container, also try host.docker.internal.
+    parsed = urlsplit(check_url)
+    candidate_urls = [check_url]
+    if parsed.hostname in {"localhost", "127.0.0.1"}:
+        alt_netloc = parsed.netloc.replace(
+            parsed.hostname, "host.docker.internal", 1)
+        candidate_urls.append(
+            urlunsplit((parsed.scheme, alt_netloc, parsed.path,
+                        parsed.query, parsed.fragment))
+        )
+
+    online = False
+    for candidate_url in candidate_urls:
+        try:
+            requests.get(candidate_url, timeout=10)
+            online = True
+            break
+        except Exception:
+            continue
+    return {"online": online, "url": display_url}
