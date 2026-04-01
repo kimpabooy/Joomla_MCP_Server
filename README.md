@@ -187,7 +187,7 @@ cd /opt/joomla-mcp-server
 cp .env.example .env
 ```
 
-Edit `.env` with **production values** (CRITICAL):
+Edit `.env` with **production values**:
 
 ```env
 # Use your actual server domain/IP, NOT localhost
