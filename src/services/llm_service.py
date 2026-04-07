@@ -1,6 +1,7 @@
 from openai import OpenAI
 from openai.types.chat import ChatCompletionToolParam
-from os import getenv
+# from os import getenv
+from src.utils.config import get_openai_api_key
 import json
 from typing import Any, cast
 
@@ -10,7 +11,8 @@ and provides a function to send user messages to the LLM and receive either a to
 More information: https://developers.openai.com/api/docs/guides/function-calling
 """
 
-client = OpenAI(api_key=getenv("OPENAI_API_KEY"))
+# client = OpenAI(api_key=getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=get_openai_api_key())
 
 # OpenAI function-calling schema exposed to the model.
 OPENAI_TOOL_SCHEMAS: list[ChatCompletionToolParam] = [
