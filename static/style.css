@@ -63,9 +63,6 @@
 }
 :root {
     --bg: #11141b;
-    --bg-glow: #1a2230;
-    --card: #1e2531;
-    --card-soft: #252e3d;
     --text: #dce8ff;
     --muted: #98a9c5;
     --border: #3a4760;
@@ -107,14 +104,15 @@ h1 {
 
 #main-flex {
     display: grid;
-    grid-template-columns: 0.9fr 2fr 0.9fr;
+    grid-template-columns: 2fr 0.9fr;
     gap: 18px;
     align-items: start;
+    width: min(100%, 1100px);
+    margin-left: auto;
 }
 
-#response-box,
 #chatbox,
-#endpoints-box {
+.tipsbox {
     margin: 0;
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -122,33 +120,22 @@ h1 {
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
 }
 
-#response-box,
-#endpoints-box {
+.tipsbox {
     padding: 18px;
     min-height: 460px;
+    display: flex;
+    flex-direction: column;
 }
 
-#endpoints-box p {
-    margin-top: 90%;
+.tipsbox p {
+    margin-top: auto;
     color: var(--muted);
 }
 
-#response-box h2,
-#endpoints-box h2 {
+.tipsbox h2 {
     margin-top: 0;
     margin-bottom: 14px;
     font-size: 1.9rem;
-}
-
-#endpoint-response {
-    white-space: pre-wrap;
-    word-break: break-word;
-    color: var(--muted);
-    line-height: 1.45;
-}
-
-.status-thinking {
-    color: var(--ai-accent);
 }
 
 #chatbox {
@@ -348,13 +335,14 @@ h1 {
     white-space: pre-wrap;
 }
 
-#endpoints-list {
+.tipsbox-list {
     list-style: none;
     padding-left: 0;
     margin: 0;
+    margin-bottom: auto;
 }
 
-#endpoints-list li {
+.tipsbox-list li {
     margin-bottom: 8px;
     font-size: 1rem;
 }
@@ -441,8 +429,7 @@ h1 {
         grid-template-columns: 1fr;
     }
 
-    #response-box,
-    #endpoints-box,
+    .tipsbox,
     #chatbox {
         min-height: auto;
     }
@@ -458,12 +445,13 @@ h1 {
     }
 
     h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         margin-bottom: 14px;
     }
 
     .input-wrap {
         grid-template-columns: 1fr;
+        font-size: small;
     }
 
     #sendBtn {
@@ -473,5 +461,29 @@ h1 {
 
     .chat-msg {
         max-width: 95%;
+        font-size: small;
+    }
+
+    #joomla-status-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .tipsbox {
+        padding: 14px;
+    }
+    .tipsbox h2 {
+        font-size: 1.5rem;
+    }
+    .tipsbox h3 {
+        font-size: 1.1rem;
+    }
+    .tipsbox-list li {
+        font-size: 0.9rem;
+    }
+    .tipsbox p {
+        font-size: 0.85rem;
     }
 }

@@ -22,11 +22,6 @@
 
 
         <div id="main-flex">
-            <section id="response-box">
-                <h2>Händelse Resultat</h2>
-                <div id="endpoint-response"></div>
-            </section>
-
             <section id="chatbox">
                 <div id="chatlog">
                     <div class="chat-msg bot">Välkommen! Jag är redo att assistera dig med dina Joomla-uppgifter.
@@ -40,10 +35,10 @@
                 </form>
             </section>
 
-            <section id="endpoints-box">
+            <section class="tipsbox">
                 <h2>Tips!</h2>
                 <h3>Prova att fråga:</h3>
-                <ul id="endpoints-list">
+                <ul class="tipsbox-list">
                     <li>Vilka funktioner kan du hjälpa mig med?</li>
                 </ul>
                 <p>Extra: /clear - Rensar skärmen</p>
@@ -89,7 +84,7 @@
         </div>
     </dialog>
 
-    <script src="/static/chat.js"></script>
+    <script src="/static/chat.js?v={{ refresh_cache }}"></script>
 </body>
 
 </html>
