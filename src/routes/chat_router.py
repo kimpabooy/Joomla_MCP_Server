@@ -33,7 +33,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 joomla_site_url = getenv("JOOMLA_SITE_URL")
-joomla_status_check_url = getenv("JOOMLA_SITE_CHECK_URL") or joomla_site_url
+joomla_status_check_url = joomla_site_url
 
 
 CONFIRMATION_TTL_SECONDS = 300
@@ -212,6 +212,41 @@ def _mask_sensitive_data(value: object) -> object:
         return [_mask_sensitive_data(item) for item in value]
 
     return value
+
+
+def _build_status_candidate_urls(url: str) -> list[str]:
+    """Builds candidate URLs for status checks across browser and container contexts."""
+    parsed = urlsplit(url)
+    hostname = parsed.hostname
+    if not hostname:
+        return [url]
+
+    candidates = [url]
+
+    # Browser-friendly localhost hostnames may not resolve inside containers.
+    if hostname in {"localhost", "127.0.0.1", "host.docker.internal.localhost"}:
+        container_host = "host.docker.internal"
+        container_netloc = parsed.netloc.replace(hostname, container_host, 1)
+        candidates.append(
+            urlunsplit(
+                (parsed.scheme, container_netloc, parsed.path,
+                 parsed.query, parsed.fragment)
+            )
+        )
+
+    # If a Docker-only host is configured, include a browser-friendly localhost alias.
+    if hostname == "host.docker.internal":
+        browser_host = "host.docker.internal.localhost"
+        browser_netloc = parsed.netloc.replace(hostname, browser_host, 1)
+        candidates.append(
+            urlunsplit(
+                (parsed.scheme, browser_netloc, parsed.path,
+                 parsed.query, parsed.fragment)
+            )
+        )
+
+    # Preserve order while removing duplicates.
+    return list(dict.fromkeys(candidates))
 
 
 def _execute_tool_batch(tool_calls: list[dict]) -> tuple[list[dict], str | None]:
@@ -429,16 +464,7 @@ def joomla_status():
     # Determine the URL to display in the response based on the environment variables. We prioritize a specific status check URL if provided, but fall back to the main site URL for display purposes if available.
     display_url = joomla_site_url or check_url
 
-    # If the configured URL uses localhost inside a container, also try host.docker.internal.
-    parsed = urlsplit(check_url)
-    candidate_urls = [check_url]
-    if parsed.hostname in {"localhost", "127.0.0.1"}:
-        alt_netloc = parsed.netloc.replace(
-            parsed.hostname, "host.docker.internal", 1)
-        candidate_urls.append(
-            urlunsplit((parsed.scheme, alt_netloc, parsed.path,
-                        parsed.query, parsed.fragment))
-        )
+    candidate_urls = _build_status_candidate_urls(check_url)
 
     online = False
     for candidate_url in candidate_urls:

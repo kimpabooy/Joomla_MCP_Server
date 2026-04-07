@@ -71,7 +71,6 @@ External MCP client
 ├── DEPLOYMENT.md
 ├── Dockerfile
 ├── docker-compose.yml
-├── docker-compose.prod.yml
 ├── main.py
 ├── pyproject.toml
 ├── uv.lock
@@ -139,7 +138,7 @@ uv run main.py
 
 Access at: `http://127.0.0.1:8000`
 
-### Docker Development (Recommended)
+### Docker Production
 
 #### 1. Configure Environment
 
@@ -152,12 +151,12 @@ Edit `.env` with your Joomla and OpenAI credentials (see section below).
 #### 2. Build and Run
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
 Access at: `http://localhost:8000`
 
-**Note:** The Docker dev setup automatically uses `host.docker.internal` to reach your local Joomla server, which is why `JOOMLA_SITE_URL` can remain `http://localhost:8080` in `.env`.
+**Note:** Use the production URL values in [.env.example](.env.example) or your server-specific values.
 
 ---
 
@@ -199,18 +198,12 @@ OPENAI_API_KEY="sk-proj-your-key"
 
 **Important:** In production, use your **actual domain or server IP**, not `localhost` or `host.docker.internal`.
 
-**Local test of production compose:** If you run `docker-compose.prod.yml` on your local machine while Joomla is also running locally, keep `JOOMLA_SITE_URL` as your public/local browser URL (for display), and set:
-
-```env
-JOOMLA_SITE_CHECK_URL="http://host.docker.internal:8080"
-```
-
-This is needed because `localhost` inside the app container points to the container itself, not your host machine.
+**Local development:** Use `uv run main.py` for local testing with your local Joomla instance.
 
 #### 3. Configure Production Docker Compose
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+docker compose up -d --build
 ```
 
 This uses the production settings:
@@ -229,13 +222,12 @@ http://your-domain.com:8000 (if using domain)
 
 ### Environment Variable Reference
 
-| Variable                | Local Dev                                | Production                                    | Notes                                    |
-| ----------------------- | ---------------------------------------- | --------------------------------------------- | ---------------------------------------- |
-| `JOOMLA_SITE_URL`       | `http://localhost:8080`                  | `https://joomla.example.com`                  | Use your actual domain in prod           |
-| `JOOMLA_API_URL`        | `http://localhost:8080/api/index.php/v1` | `https://joomla.example.com/api/index.php/v1` | Root API endpoint                        |
-| `JOOMLA_SITE_CHECK_URL` | Optional (auto-handled in dev compose)   | Optional override for status checks           | Useful when testing prod compose locally |
-| `JOOMLA_API_TOKEN`      | Any valid token                          | Valid token with API perms                    | Generate in Joomla System > Users        |
-| `OPENAI_API_KEY`        | Your key                                 | Your key                                      | Must be valid OpenAI API key             |
+| Variable           | Local Dev                                | Production                                    | Notes                             |
+| ------------------ | ---------------------------------------- | --------------------------------------------- | --------------------------------- |
+| `JOOMLA_SITE_URL`  | `http://localhost:8080`                  | `https://joomla.example.com`                  | Use your actual domain in prod    |
+| `JOOMLA_API_URL`   | `http://localhost:8080/api/index.php/v1` | `https://joomla.example.com/api/index.php/v1` | Root API endpoint                 |
+| `JOOMLA_API_TOKEN` | Any valid token                          | Valid token with API perms                    | Generate in Joomla System > Users |
+| `OPENAI_API_KEY`   | Your key                                 | Your key                                      | Must be valid OpenAI API key      |
 
 ### Network Troubleshooting
 
@@ -244,10 +236,10 @@ http://your-domain.com:8000 (if using domain)
 **Solution:** Verify Joomla URLs from inside the container:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec app uv run python -c "import requests; print(requests.get('http://host.docker.internal:8080', timeout=5).status_code)"
+docker compose exec app uv run python -c "import requests; print(requests.get('https://joomla.example.com', timeout=5).status_code)"
 ```
 
-In **production**, replace `host.docker.internal` with your actual server IP or domain.
+In **production**, use your actual server IP or domain.
 
 ---
 

@@ -4,10 +4,11 @@ Service functions for Joomla categories.
 
 
 import requests
-import os
-from src.utils.config import get_headers
+from src.utils.config import get_headers, get_joomla_api_url
 from typing import Any, Dict, List
-JOOMLA_API_URL = os.getenv("JOOMLA_API_URL")
+
+JOOMLA_API_URL = get_joomla_api_url()
+
 
 def get_joomla_categories(token: str) -> List[Dict[str, Any]]:
     """Fetches all categories from Joomla and returns a list of formatted category data."""

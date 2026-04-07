@@ -6,15 +6,14 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
-    environment:
-      JOOMLA_SITE_CHECK_URL: ${JOOMLA_SITE_CHECK_URL_DOCKER:-http://host.docker.internal:8080/api/index.php/v1}
-      JOOMLA_API_URL: ${JOOMLA_API_URL_DOCKER:-http://host.docker.internal:8080/api/index.php/v1}
     ports:
       - "8000:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - .:/app
-      - /app/.venv
-    command: uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    restart: unless-stopped
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/joomla-status', timeout=8)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+

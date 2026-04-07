@@ -1,136 +1,114 @@
 # Deployment Checklist for Joomla MCP Server
 
-When deploying to a new environment (server, team member, production)
+A practical deployment guide for running the Joomla MCP Server in local development and production environments.
 
-## Setup Instructions
+![icon](static/favicon.ico)
 
-### 1. Clone Repository
+This project has two intended runtime modes:
+
+- Local development: `uv run main.py`
+- Production: `docker compose up -d --build`
+
+## Setup
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/kimpabooy/Joomla_MCP_Server /opt/joomla-mcp-server
 cd /opt/joomla-mcp-server
 ```
 
-### 2. Create Local `.env`
+### 2. Install uv
+
+```bash
+pip install uv
+```
+
+### 3. Create `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-### 3. Edit `.env` with Your Values
+### 4. Edit `.env`
 
-- **`JOOMLA_SITE_URL`**: Must match your Joomla installation URL
-  - Local: `http://localhost:8080` or `http://host.docker.internal:8080`
-  - Server: `https://joomla.example.com`
-  - **IMPORTANT**: No trailing slash
-- **`JOOMLA_API_URL`**: Base API endpoint
-  - Local: `http://localhost:8080/api/index.php/v1`
-  - Server: `https://joomla.example.com/api/index.php/v1`
-- **`JOOMLA_SITE_CHECK_URL`**: Optional URL used by `/joomla-status`
-  - Local prod-compose test: `http://host.docker.internal:8080`
-  - Server: usually not needed (leave unset unless you want explicit health target)
-- **`JOOMLA_API_TOKEN`**: Get from Joomla System > Users > Create API Token
-- **`OPENAI_API_KEY`**: Get from https://platform.openai.com/api-keys
+Set these values for your environment:
 
-### 4. Choose Deployment Method
+- `JOOMLA_SITE_URL`: Joomla site URL
+  - Local development: `http://localhost:8080`
+  - Production: `https://joomla.example.com`
+  - Do not add a trailing slash
+- `JOOMLA_API_URL`: Joomla API base URL
+  - Local development: `http://localhost:8080/api/index.php/v1`
+  - Production: `https://joomla.example.com/api/index.php/v1`
+  - Do not add a trailing slash
+- `JOOMLA_API_TOKEN`: Joomla API token from System > Users > Create API Token
+- `OPENAI_API_KEY`: Your OpenAI API key
 
-#### Option A: Docker (Recommended)
+## Run the project
 
-```bash
-docker compose up --build
-```
-
-Access: http://localhost:8000
-
-#### Option B: Local Python
+### Local development
 
 ```bash
-pip install uv
 uv sync
 uv run main.py
 ```
 
-Access: http://127.0.0.1:8000
+Open the app at http://127.0.0.1:8000.
 
-### 5. Verify Connection
-
-Open browser and check:
-
-- Main app: `http://localhost:8000`
-- Status: `http://localhost:8000/joomla-status` (should show `"online": true`)
-
-## Common Issues
-
-### Status Shows online=false
-
-**Cause:** `JOOMLA_SITE_URL` cannot be reached from inside the container.
-
-**Fix (Local):** Ensure `.env` has:
-
-```
-JOOMLA_SITE_URL=http://localhost:8080
-```
-
-or `http://host.docker.internal:8080` if Joomla-site runs locally.
-
-If you specifically run `docker-compose.prod.yml` locally, set:
-
-```
-JOOMLA_SITE_CHECK_URL=http://host.docker.internal:8080
-```
-
-because `localhost` inside the container points to the container itself.
-
-**Fix (Server):** Use your actual domain or server IP:
-
-```
-JOOMLA_SITE_URL=https://joomla.example.com
-```
-
-### Tools Cannot Connect to Joomla
-
-**Cause:** API URL unreachable or wrong path.
-
-**Debug:** Inside container, run:
+### Production
 
 ```bash
-docker compose -f docker-compose.prod.yml exec app uv run python -c "import requests; print(requests.get('https://joomla.example.com/api/index.php/v1', timeout=5).status_code)"
+docker compose up -d --build
 ```
 
-Should return API response (not 404 or connection error).
+Open the app at http://localhost:8000 or your server domain.
 
-### API Token Invalid
+## Verify the setup
 
-**Cause:** Token has no API permissions or is expired.
+Check that the app starts and the Joomla status endpoint responds:
 
-**Fix:** Regenerate token:
+- Main app: http://localhost:8000
+- Status: http://localhost:8000/joomla-status
 
-1. Joomla System > Users
-2. Click your user
-3. API Tokens tab
-4. Create new token
-5. Copy and paste into `.env`
+The status endpoint should return `"online": true` when Joomla is reachable.
 
-## Production Deployment
+## Troubleshooting
 
-For production servers, use `docker-compose.prod.yml`:
+### `/joomla-status` returns `online=false`
+
+This usually means the Joomla site URL cannot be reached from the environment you are running in.
+
+- In local development, make sure `JOOMLA_SITE_URL` points to your local Joomla instance.
+- In Docker, if Joomla runs on your machine, use `http://host.docker.internal:8080`.
+- In production, use the real server domain or IP.
+
+### Tools cannot connect to Joomla
+
+This usually means `JOOMLA_API_URL` is wrong or Joomla is unreachable.
+
+Test the API from inside the container:
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+docker compose exec app uv run python -c "import requests; print(requests.get('https://joomla.example.com/api/index.php/v1', timeout=5).status_code)"
 ```
 
-Key differences:
+The request should return a valid Joomla response, not a timeout or 404.
 
-- No development reload
-- No local volume mounts
-- Health checks enabled
-- Automatic restart on failure
-- All env vars read from `.env` only
+### API token is invalid
 
-## Security Notes
+If Joomla rejects requests, regenerate the token:
 
-- **Never commit `.env`** to Git
-- Use HTTPS for `JOOMLA_SITE_URL` on production
-- Use strong, rotated API tokens
-- Keep OpenAI keys private
-- Use environment secrets in CI/CD pipelines
+1. Open Joomla admin
+2. Go to Users
+3. Open your user
+4. Open the API Tokens tab
+5. Create a new token
+6. Update `.env`
+
+## Production notes
+
+- Use `docker compose up -d --build` on the server
+- Keep secrets out of Git
+- Use HTTPS in production
+- Rotate API tokens regularly
