@@ -1,6 +1,5 @@
 const textarea = document.getElementById('endpointInput');
 const chatlog = document.getElementById('chatlog');
-const responseBox = document.getElementById('endpoint-response');
 const sendBtn = document.getElementById('sendBtn');
 const WELCOME_MESSAGE = 'Välkommen! Jag är redo att assistera dig med dina Joomla-uppgifter.';
 
@@ -78,7 +77,6 @@ function addBotMessage(text, options = {}) {
 async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
     if (sendBtn) sendBtn.disabled = true;
     addUserMessage(shownMessage);
-    responseBox.innerHTML = '<span class="status-thinking">AI bearbetar begäran...</span>';
     const pendingBotMsg = addBotMessage('AI tänker...', { pending: true });
 
     try {
@@ -98,7 +96,6 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
         if (data.requires_confirmation) {
             pendingBotMsg.remove();
             addBotMessage(data.response || 'Åtgärden kräver bekräftelse.');
-            responseBox.innerHTML = '';
 
             const confirmed = window.confirm('Destruktiv åtgärd upptäckt. Är du säker på att du vill fortsätta?');
             if (confirmed) {
@@ -120,46 +117,24 @@ async function sendToLLM(message, shownMessage = message, extraPayload = {}) {
         if (data.error) {
             pendingBotMsg.remove();
             addBotMessage(data.error);
-            responseBox.innerHTML = '';
             if (sendBtn) sendBtn.disabled = false;
             return;
         }
 
-        // Visa alltid response-texten i chatten om den finns, även om tool_results finns.
-        const hasToolResults = Array.isArray(data.tool_results) && data.tool_results.length > 0;
-        if (data.response || hasToolResults) {
+        const responseText = typeof data.response === 'string' ? data.response.trim() : '';
+
+        if (responseText) {
             pendingBotMsg.remove();
-
-            // Visa response-texten om den finns
-            const responseText = typeof data.response === 'string' && data.response.trim()
-                ? data.response
-                : null;
-            if (responseText) {
-                addBotMessage(responseText);
-            }
-
-            // Visa verktygsresultat i Händelse Resultat om de finns
-            if (hasToolResults) {
-                const display = data.tool_results.length === 1 ? data.tool_results[0] : data.tool_results;
-                responseBox.innerHTML = '<pre>' + JSON.stringify(display, null, 2) + '</pre>';
-                // Om det inte fanns någon response-text, visa fallback-meddelande i chatten
-                if (!responseText) {
-                    addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
-                }
-            } else {
-                responseBox.innerHTML = '';
-            }
+            addBotMessage(responseText);
             if (sendBtn) sendBtn.disabled = false;
         } else {
             pendingBotMsg.remove();
-            responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            addBotMessage('Klart! Se Händelse Resultat till vänster för detaljer.');
+            addBotMessage('Jag har hanterat din begäran.');
             if (sendBtn) sendBtn.disabled = false;
         }
     } catch (err) {
         pendingBotMsg.remove();
         addBotMessage('Fel vid kommunikation med AI. Prova igen.');
-        responseBox.innerHTML = '';
         if (sendBtn) sendBtn.disabled = false;
     }
 }
@@ -180,7 +155,6 @@ document.getElementById('chatForm').onsubmit = async function (event) {
 
     if (prompt === '/clear' || prompt === 'clear') {
         chatlog.innerHTML = `<div class="chat-msg bot">${WELCOME_MESSAGE}</div>`;
-        responseBox.innerHTML = '';
         textarea.value = '';
         textarea.focus();
         scrollChatToBottom();
